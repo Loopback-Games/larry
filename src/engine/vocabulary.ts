@@ -7,6 +7,9 @@
  */
 export class Vocabulary {
   private readonly verbs = new Map<string, string>();
+  /** Inventory words. These always win over another room's scenery. */
+  private readonly itemNouns = new Map<string, string>();
+  /** Scenery words, pooled from every room plus the universal set. */
   private readonly nouns = new Map<string, string>();
   private readonly preps = new Map<string, string>();
   private readonly ignored = new Set<string>();
@@ -37,6 +40,12 @@ export class Vocabulary {
     return this;
   }
 
+  /** Register an inventory word, which outranks scenery of the same spelling. */
+  itemNoun(canonical: string, ...synonyms: string[]): this {
+    this.add(this.itemNouns, canonical, synonyms);
+    return this;
+  }
+
   preposition(canonical: string, ...synonyms: string[]): this {
     this.add(this.preps, canonical, synonyms);
     return this;
@@ -50,8 +59,16 @@ export class Vocabulary {
   lookupVerb(word: string): string | undefined {
     return this.verbs.get(word);
   }
-  lookupNoun(word: string): string | undefined {
-    return this.nouns.get(word);
+  /**
+   * Resolve a noun, most specific first: the scenery of the room the player is
+   * standing in, then anything they might be carrying, then the shared pool.
+   *
+   * Without the room layer a noun registered late would silently rename the
+   * same word everywhere else: "wall" became the penthouse parapet, and the
+   * washroom graffiti stopped answering to it.
+   */
+  lookupNoun(word: string, roomNouns?: ReadonlyMap<string, string>): string | undefined {
+    return roomNouns?.get(word) ?? this.itemNouns.get(word) ?? this.nouns.get(word);
   }
   lookupPreposition(word: string): string | undefined {
     return this.preps.get(word);
@@ -63,19 +80,35 @@ export class Vocabulary {
     return (
       this.verbs.has(word) ||
       this.nouns.has(word) ||
+      this.itemNouns.has(word) ||
       this.preps.has(word) ||
       this.ignored.has(word)
     );
   }
 
+  /** Compile one room's hotspot words into a lookup layer. */
+  static scopeFrom(
+    spots: readonly { noun: string; synonyms?: readonly string[] }[],
+  ): Map<string, string> {
+    const scope = new Map<string, string>();
+    for (const spot of spots) {
+      for (const word of [spot.noun, ...(spot.synonyms ?? [])]) {
+        scope.set(normalise(word), spot.noun);
+      }
+    }
+    return scope;
+  }
+
   /** Every canonical noun currently registered, for suggestion UI. */
   nounIds(): string[] {
-    return [...new Set(this.nouns.values())].sort();
+    return [...new Set([...this.nouns.values(), ...this.itemNouns.values()])].sort();
   }
 
   /** Every word the player could usefully type, for autocomplete. */
   allWords(): string[] {
-    return [...new Set([...this.verbs.keys(), ...this.nouns.keys()])].sort();
+    return [
+      ...new Set([...this.verbs.keys(), ...this.nouns.keys(), ...this.itemNouns.keys()]),
+    ].sort();
   }
 }
 

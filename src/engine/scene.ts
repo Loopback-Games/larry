@@ -12,6 +12,7 @@ import {
 import type { Pen } from './raster.js';
 import { CANVAS_W, CANVAS_H, WALK_BLOCKED } from '../constants.js';
 import { rng, randInt } from './rng.js';
+import { glyphPixel, GLYPH_W, GLYPH_H } from './font.js';
 
 /**
  * Fluent painter over a {@link Surface}.
@@ -145,6 +146,34 @@ export class Painter {
   maskFill(x: number, y: number, boundary: number): this {
     floodMask(this.surface, this.pen, x, y, boundary);
     return this;
+  }
+
+  /**
+   * Draw text into the scene with the bitmap font, optionally scaled up.
+   * Used for signage and the title screen.
+   */
+  text(value: string, x: number, y: number, scale = 1, spacing = 0): this {
+    const step = GLYPH_W * scale + spacing;
+    for (let i = 0; i < value.length; i++) {
+      const code = value.charCodeAt(i);
+      for (let gy = 0; gy < GLYPH_H; gy++) {
+        for (let gx = 0; gx < GLYPH_W; gx++) {
+          if (!glyphPixel(code, gx, gy)) continue;
+          this.box(x + i * step + gx * scale, y + gy * scale, scale, scale);
+        }
+      }
+    }
+    return this;
+  }
+
+  /** Width in pixels that {@link text} will occupy. */
+  textWidth(value: string, scale = 1, spacing = 0): number {
+    return value.length * (GLYPH_W * scale + spacing) - spacing;
+  }
+
+  /** Draw text centred on `cx`. */
+  textCentred(value: string, cx: number, y: number, scale = 1, spacing = 0): this {
+    return this.text(value, Math.round(cx - this.textWidth(value, scale, spacing) / 2), y, scale, spacing);
   }
 
   // ---- composite scenery -------------------------------------------------

@@ -5,6 +5,7 @@ import { ITEMS, STARTING_ITEMS } from './items.js';
 import { RoomId } from './ids.js';
 import { ItemId } from './ids.js';
 import { ROOMS } from './rooms/index.js';
+import { NIGHT_LENGTH } from './rooms/sunrise.js';
 import { C } from '../engine/palette.js';
 
 /** What Larry has in his wallet when the night begins. */
@@ -44,7 +45,16 @@ export function createGame(hooks: GameHooks = {}): Game {
   for (const item of STARTING_ITEMS) game.give(item);
   game.setCounter('money', STARTING_MONEY);
 
-  game.goTo(RoomId.OutsideBar);
+  // The night has a length. Running it out is an ending in its own right.
+  game.onMove = (g) => {
+    const framing: string[] = [RoomId.Title, RoomId.AgeCheck, RoomId.Sunrise];
+    if (framing.includes(g.roomId) || g.ending) return false;
+    if (g.moves < NIGHT_LENGTH) return false;
+    g.goTo(RoomId.Sunrise);
+    return true;
+  };
+
+  game.goTo(RoomId.Title);
   return game;
 }
 

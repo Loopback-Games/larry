@@ -1,4 +1,7 @@
 import type { RoomDef } from '../../engine/room.js';
+import { title } from './title.js';
+import { ageCheck } from './age-check.js';
+import { sunrise } from './sunrise.js';
 import { outsideBar } from './outside-bar.js';
 import { insideBar } from './inside-bar.js';
 import { barHallway } from './bar-hallway.js';
@@ -32,6 +35,9 @@ import { penthouseHotTub } from './penthouse-hot-tub.js';
  * reachable; the engine registers its hotspot nouns with the parser.
  */
 export const ROOMS: readonly RoomDef[] = [
+  title,
+  ageCheck,
+  sunrise,
   outsideBar,
   insideBar,
   barHallway,

@@ -66,7 +66,7 @@ export function buildVocabulary(): Vocabulary {
   v.verb('marry', 'wed', 'propose');
   v.verb('sit', 'sit down', 'sit on', 'be seated');
   v.verb('stand', 'stand up', 'get up', 'rise');
-  v.verb('sleep', 'nap', 'rest');
+  v.verb('sleep', 'nap', 'rest', 'go to bed', 'lie down', 'get in bed', 'get into bed');
   v.verb('wait', 'z');
   v.verb('eat', 'consume', 'bite');
   v.verb('drink', 'sip', 'swallow');
@@ -114,6 +114,9 @@ export function buildVocabulary(): Vocabulary {
     'a', 'an', 'the', 'my', 'your', 'his', 'her', 'its', 'their',
     'this', 'that', 'these', 'those', 'some', 'any', 'all',
     'please', 'now', 'then', 'just', 'really', 'very',
+    // 'go' is filler: the movement verbs are registered as "go north" phrases,
+    // which are matched before the bare word is discarded.
+    'go',
     'and', 'of', 'is', 'are', 'was', 'be', 'do', 'does', 'did',
     // 'i' is deliberately not ignored: as a lone word it is the
     // inventory shorthand, which players use far more than the pronoun.
@@ -121,7 +124,7 @@ export function buildVocabulary(): Vocabulary {
   );
 
   // ---- items -------------------------------------------------------------
-  for (const item of ALL_ITEMS) v.noun(item.id, ...item.nouns);
+  for (const item of ALL_ITEMS) v.itemNoun(item.id, ...item.nouns);
 
   // ---- universally present scenery ---------------------------------------
   v.noun('self', 'me', 'myself', 'larry', 'larry laffer');

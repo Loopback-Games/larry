@@ -37,6 +37,11 @@ export interface RoomDef {
   readonly id: string;
   /** Shown on the status line. */
   readonly title: string;
+  /**
+   * A framing screen rather than a place: the title card, the door quiz, the
+   * ending. Larry is not drawn and there is nowhere to walk.
+   */
+  readonly cutscene?: boolean;
   /** Builds the room's artwork; called once and cached. */
   readonly scene: () => Surface;
   /** Entry positions keyed by the room travelled from, plus a `default`. */

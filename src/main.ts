@@ -55,7 +55,8 @@ function boot(): void {
       if (value.trim()) game.submit(value);
       return;
     }
-    if (value.trim()) game.submit(value);
+    // An empty Enter still advances the title card and the door.
+    if (value.trim() || game.room.cutscene) game.submit(value);
     refreshChips();
   };
 

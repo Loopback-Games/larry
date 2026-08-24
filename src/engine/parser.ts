@@ -52,9 +52,15 @@ export const EMPTY_COMMAND = new Command('', null, null, null, null, null, []);
  * Turn a typed line into a {@link Command}.
  *
  * Words are matched greedily longest-first so multi-word entries like
- * "disco pass" or "look under" win over their single-word prefixes.
+ * "disco pass" or "look under" win over their single-word prefixes. Nouns are
+ * resolved against `roomNouns` first, so scenery in the current room outranks
+ * a word another room happens to use for something else.
  */
-export function parse(input: string, vocab: Vocabulary): Command {
+export function parse(
+  input: string,
+  vocab: Vocabulary,
+  roomNouns?: ReadonlyMap<string, string>,
+): Command {
   const raw = input.trim();
   const words = normalise(raw).split(' ').filter(Boolean);
   if (words.length === 0) return new Command(raw, null, null, null, null, null, []);
@@ -85,7 +91,7 @@ export function parse(input: string, vocab: Vocabulary): Command {
         matched = true;
         break;
       }
-      const asNoun = vocab.lookupNoun(phrase);
+      const asNoun = vocab.lookupNoun(phrase, roomNouns);
       if (asNoun) {
         found.push(asNoun);
         i += n;

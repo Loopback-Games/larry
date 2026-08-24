@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { ROOMS, ROOMS_BY_ID } from '../src/game/rooms/index.js';
 import { createGame } from '../src/game/index.js';
 import { RoomId, MAX_SCORE } from '../src/game/ids.js';
+import { QUESTIONS } from '../src/game/rooms/age-check.js';
 import { CANVAS_W, CANVAS_H, WALK_BLOCKED } from '../src/constants.js';
 
 describe('world integrity', () => {
@@ -63,15 +64,18 @@ describe('world integrity', () => {
       const s = room.scene();
       expect(s.width, room.id).toBe(CANVAS_W);
       expect(s.height, room.id).toBe(CANVAS_H);
-      const walkable = s.walk.reduce((n, v) => n + (v === 0 ? 1 : 0), 0);
-      expect(walkable, `${room.id} has no walkable floor`).toBeGreaterThan(500);
       const painted = s.colour.reduce((n, v) => n + (v === 0 ? 0 : 1), 0);
       expect(painted, `${room.id} is mostly blank`).toBeGreaterThan(3000);
+      // Framing screens are deliberately unwalkable.
+      if (room.cutscene) continue;
+      const walkable = s.walk.reduce((n, v) => n + (v === 0 ? 1 : 0), 0);
+      expect(walkable, `${room.id} has no walkable floor`).toBeGreaterThan(500);
     }
   });
 
   it('lets Larry stand where each room puts him', () => {
     for (const room of ROOMS) {
+      if (room.cutscene) continue;
       const s = room.scene();
       for (const [name, point] of Object.entries(room.entries)) {
         const mask = s.walk[Math.round(point.y) * CANVAS_W + Math.round(point.x)];
@@ -102,11 +106,33 @@ describe('world integrity', () => {
     }
   });
 
-  it('starts a new game in the opening room with the pocket items', () => {
+  it('starts a new game on the title card with the pocket items', () => {
     const g = createGame();
-    expect(g.roomId).toBe(RoomId.OutsideBar);
+    expect(g.roomId).toBe(RoomId.Title);
     expect(g.score).toBe(0);
     expect(g.inventory).toHaveLength(4);
     expect(MAX_SCORE).toBe(222);
+  });
+
+  it('reaches the opening room through the title card and the door', () => {
+    const g = createGame();
+    const drain = () => {
+      while (g.dismissMessage());
+    };
+    drain();
+    g.submit('start');
+    drain();
+    expect(g.roomId).toBe(RoomId.AgeCheck);
+
+    // Answer the questions the room is actually asking, which the room derives
+    // from its own counters.
+    for (let i = 0; i < 12 && g.roomId === RoomId.AgeCheck; i++) {
+      const seed = g.counter('quizSeed');
+      const index = g.counter('quizIndex');
+      const question = QUESTIONS[(seed + index * 3) % QUESTIONS.length];
+      g.submit(question.answers[0]);
+      drain();
+    }
+    expect(g.roomId).toBe(RoomId.OutsideBar);
   });
 });

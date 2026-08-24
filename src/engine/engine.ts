@@ -2,7 +2,7 @@ import { Surface } from './raster.js';
 import { Painter } from './scene.js';
 import { Actor } from './actor.js';
 import { Command, EMPTY_COMMAND, parse } from './parser.js';
-import type { Vocabulary } from './vocabulary.js';
+import { Vocabulary } from './vocabulary.js';
 import type { RoomDef, Hotspot, EntryPoint } from './room.js';
 import { WALK_BLOCKED, WALK_WATER, CANVAS_W, CANVAS_H } from '../constants.js';
 
@@ -51,6 +51,8 @@ export class Game {
   readonly vocab: Vocabulary;
   private readonly rooms = new Map<string, RoomDef>();
   private readonly scenes = new Map<string, Surface>();
+  /** Per-room noun lookup layers, so scenery words stay room-local. */
+  private readonly roomNouns = new Map<string, Map<string, string>>();
   private readonly hooks: GameHooks;
 
   private flags = new Set<string>();
@@ -84,6 +86,12 @@ export class Game {
    */
   random: () => number = Math.random;
 
+  /**
+   * Called after each accepted command. Returning true consumes the turn, which
+   * is how the night's time limit ends the game.
+   */
+  onMove?: (g: Game) => boolean;
+
   /** Integer in [min, max] inclusive. */
   roll(min: number, max: number): number {
     return min + Math.floor(this.random() * (max - min + 1));
@@ -99,9 +107,16 @@ export class Game {
 
   addRoom(room: RoomDef): void {
     this.rooms.set(room.id, room);
-    for (const spot of room.hotspots ?? []) {
-      this.vocab.noun(spot.noun, ...(spot.synonyms ?? []));
-    }
+    const spots = room.hotspots ?? [];
+    this.roomNouns.set(room.id, Vocabulary.scopeFrom(spots));
+    // Also pooled globally so the words are recognised (rather than reported as
+    // unknown) when the player names them from somewhere else.
+    for (const spot of spots) this.vocab.noun(spot.noun, ...(spot.synonyms ?? []));
+  }
+
+  /** Noun layer for the room the player is standing in. */
+  get currentNouns(): ReadonlyMap<string, string> | undefined {
+    return this.currentRoom ? this.roomNouns.get(this.currentRoom.id) : undefined;
   }
 
   get roomId(): string {
@@ -240,6 +255,8 @@ export class Game {
     this.inputDy = 0;
 
     this.actors = room.populate ? room.populate(this) : [];
+    // Framing screens have no playable space, so Larry stays off them.
+    this.ego.visible = !room.cutscene;
     room.onEnter?.(this);
     this.hooks.onRoomChange?.(roomId);
   }
@@ -478,7 +495,13 @@ export class Game {
   /** Parse and run one typed line. */
   submit(input: string): void {
     if (this.dismissMessage()) return;
-    const cmd = parse(input, this.vocab);
+    const cmd = parse(input, this.vocab, this.currentNouns);
+    // Framing screens advance on any key, including a bare Enter, so an empty
+    // command still has to reach them.
+    if (cmd.isEmpty && this.currentRoom?.cutscene) {
+      this.currentRoom.onCommand?.(this, cmd);
+      return;
+    }
     this.run(cmd);
   }
 
@@ -494,6 +517,7 @@ export class Game {
     }
     this.lastCommand = cmd;
     this.moves++;
+    if (this.onMove?.(this)) return;
 
     if (this.currentRoom?.onCommand?.(this, cmd)) return;
     if (this.handleGlobal(cmd)) return;
