@@ -30,8 +30,8 @@ export interface FigureStyle {
 }
 
 /** Nominal cel box for a default-height figure. */
-export const FIGURE_W = 15;
-export const FIGURE_H = 30;
+export const FIGURE_W = 17;
+export const FIGURE_H = 38;
 
 /** Number of animation phases in a walk cycle. */
 export const WALK_PHASES = 4;

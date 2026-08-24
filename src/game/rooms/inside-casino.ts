@@ -1,84 +1,129 @@
 import { paint } from '../../engine/scene.js';
 import { C, darker } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
+
+/** Where the floor meets the back of the room. */
+const FLOOR = 118;
+
+const DOORS: readonly Doorway[] = [
+  { to: RoomId.OutsideCasino, label: 'Street', side: 'front', x: 160, w: 46 },
+  {
+    to: RoomId.Slots,
+    label: 'Slot machines',
+    side: 'back',
+    x: 48,
+    y: FLOOR,
+    w: 34,
+    h: 44,
+    kind: 'arch',
+    colour: C.gold,
+    through: C.maroonDeep,
+  },
+  {
+    to: RoomId.Lounge,
+    label: 'Lounge',
+    side: 'back',
+    x: 132,
+    y: FLOOR,
+    w: 34,
+    h: 44,
+    kind: 'arch',
+    colour: C.gold,
+    through: C.violetDeep,
+  },
+  {
+    to: RoomId.Blackjack,
+    label: 'Card tables',
+    side: 'back',
+    x: 212,
+    y: FLOOR,
+    w: 34,
+    h: 44,
+    kind: 'arch',
+    colour: C.gold,
+    through: C.greenDeep,
+  },
+  {
+    to: RoomId.ElevatorLobby,
+    label: 'Lifts',
+    side: 'back',
+    x: 288,
+    y: FLOOR,
+    w: 34,
+    h: 44,
+    kind: 'arch',
+    colour: C.gold,
+    through: C.tealDeep,
+  },
+];
 
 /**
  * The casino floor. Slot machines down one wall, a card table, a lift to the
  * hotel, and a lounge whose door is doing nothing to contain the drumming.
+ *
+ * Four ways on from here, so each one is a signposted alcove in the back wall
+ * rather than an unmarked band of carpet: this room is where walking into the
+ * wrong thing used to be easiest.
  */
 export const insideCasinoScene = () =>
   paint((p) => {
-    p.ink(C.maroon).box(0, 0, p.width, 118);
-    p.ink(darker(C.maroon)).box(0, 0, p.width, 10);
-    p.ink(C.yellow).line(0, 10, p.width - 1, 10);
+    // ---- shell -------------------------------------------------------------
+    p.ink(C.maroon).box(0, 0, p.width, FLOOR);
+    p.sweep(0, 0, p.width, FLOOR, 2, 0);
+    p.slab(0, 0, p.width, 12, C.maroonDeep, 1);
+    p.ink(C.gold).box(0, 12, p.width, 1);
 
-    // Patterned wall, because every surface in here is doing something.
-    p.ink(C.red);
-    for (let y = 16; y < 112; y += 14)
-      for (let x = 6; x < p.width; x += 18) p.path([x, y, x + 6, y + 6, x, y + 12, x - 6, y + 6]);
+    // Flock wallpaper: sparse, low contrast, and only on the upper wall, so it
+    // reads as texture instead of competing with everything in front of it.
+    p.ink(C.crimson);
+    for (let y = 20; y < 64; y += 16)
+      for (let x = 10; x < p.width; x += 26) {
+        p.path([x, y, x + 5, y + 5, x, y + 10, x - 5, y + 5]);
+      }
 
-    // Bank of slot machines along the left, ending above the carpet line.
-    for (let i = 0; i < 3; i++) {
-      const mx = 8 + i * 40;
-      p.ink(darker(C.slate)).box(mx, 54, 32, 62);
-      p.ink(C.slate).outline(mx, 54, 32, 62);
-      p.ink(C.red).box(mx + 2, 56, 28, 12);
-      p.ink(C.yellow).box(mx + 5, 59, 22, 6);
-      p.ink(C.white).box(mx + 4, 72, 24, 16);
-      p.ink(C.black).line(mx + 12, 72, mx + 12, 87).line(mx + 20, 72, mx + 20, 87);
-      p.ink(C.red).box(mx + 6, 76, 4, 6);
-      p.ink(C.lime).box(mx + 14, 76, 4, 6);
-      p.ink(C.blue).box(mx + 22, 76, 4, 6);
-      p.ink(C.grey).box(mx + 8, 94, 16, 6);
-      p.ink(C.slate).box(mx + 32, 76, 3, 14);
-      p.ink(C.red).box(mx + 31, 72, 5, 5);
+
+    // A rail of bulbs running the length of the wall, and the light it throws.
+    for (let x = 14; x < p.width; x += 28) {
+      p.ink(C.yellowPale).dot(x, 18).dot(x + 1, 18);
+      p.glow(x, 18, 12, C.crimson, 0.4, [C.maroon, C.crimson, C.maroonDeep]);
     }
 
-    // Curtained doorway to the lounge, back centre.
-    p.ink(C.black).box(136, 46, 58, 70);
-    p.ink(C.purple).outline(134, 44, 62, 74);
-    p.ink(C.pink).box(140, 34, 50, 9);
-    p.ink(C.white).box(145, 36, 40, 4);
-    p.ink(darker(C.purple));
-    for (let x = 139; x < 194; x += 6) p.line(x, 46, x + 2, 115);
+    // ---- the four alcoves --------------------------------------------------
+    // Each one is a recess with a sign over it. The arches themselves and the
+    // triggers underneath them both come from DOORS.
+    const SIGNS = [
+      [48, 'SLOTS', C.gold],
+      [132, 'LOUNGE', C.pinkLit],
+      [212, 'TABLES', C.greenLit],
+      [288, 'HOTEL', C.cyanLit],
+    ] as const;
+    for (const [sx, text, colour] of SIGNS) {
+      p.slab(sx - 26, FLOOR - 58, 52, 12, C.ink, 1);
+      p.ink(colour).textCentred(text, sx, FLOOR - 54, 1, 0);
+      p.glow(sx, FLOOR - 52, 16, C.crimson, 0.4, [C.maroon, C.crimson, C.maroonDeep]);
+    }
 
-    // Blackjack table, right of centre, clear of the carpet.
-    p.ink(C.green).solid([206, 62, 262, 62, 268, 96, 200, 96]);
-    p.ink(C.lime).line(206, 62, 261, 62);
-    p.ink(darker(C.green)).outline(200, 62, 69, 35);
-    p.ink(C.yellow).path([210, 70, 258, 70]);
-    p.ink(C.white).box(216, 76, 10, 7).box(230, 76, 10, 7).box(246, 76, 10, 7);
-    p.ink(C.black).box(224, 54, 22, 8);
-    p.ink(C.brown).box(230, 96, 8, 18);
-
-    // Lift doors, far right.
-    p.ink(C.yellow).box(272, 38, 42, 78);
-    p.ink(darker(C.yellow)).outline(272, 38, 42, 78);
-    p.ink(C.brown).line(293, 40, 293, 114);
-    p.ink(C.red).box(284, 28, 18, 8);
-    p.ink(C.white).dot(288, 32).dot(298, 32);
-
-    // Carpet: the loudest thing in the building.
-    p.ink(C.navy).box(0, 118, p.width, p.height - 118);
-    p.ink(C.blue);
-    for (let y = 122; y < p.height; y += 10)
-      for (let x = ((y / 10) % 2) * 10; x < p.width; x += 20) {
-        p.path([x, y, x + 6, y + 4, x, y + 8, x - 6, y + 4]);
+    // ---- floor -------------------------------------------------------------
+    // Patterned carpet, but held well below the wall in value so the two never
+    // read as the same surface. They used to share a texture and a brightness.
+    p.floorPlane(FLOOR, p.height, C.violet, 160, 9);
+    p.ink(C.lavender);
+    for (let r = 0; r < 4; r++) {
+      const y = FLOOR + 8 + Math.pow(r / 4, 1.5) * 46;
+      const step = 18 + r * 8;
+      for (let x = (r % 2) * step; x < p.width; x += step * 2) {
+        p.dots([x, y, x + 2, y + 2, x + 4, y, x + 2, y - 2]);
       }
-    p.ink(C.red);
-    for (let y = 126; y < p.height; y += 20)
-      for (let x = 10; x < p.width; x += 20) p.dot(x, y);
-    p.ink(C.yellow).line(0, 118, p.width - 1, 118);
+    }
+    p.contact(0, FLOOR, p.width, 12, -2);
 
-    // A side table by the wall with a card left on it.
-    p.ink(C.brown).box(196, 100, 30, 5).box(208, 105, 5, 12);
-    p.ink(C.white).box(204, 96, 14, 5);
-    p.ink(C.red).line(205, 98, 216, 98);
-
+    doorways(p, DOORS);
     p.depthRamp(118, p.height, 5, 14);
     // Only the wall and its fittings are solid; the whole carpet is walkable.
-    p.blockRect(0, 0, p.width, 118);
+    doorways(p, DOORS);
+    walls(p, FLOOR, DOORS);
   });
 
 export const insideCasino: RoomDef = {
@@ -86,13 +131,16 @@ export const insideCasino: RoomDef = {
   title: 'The Casino Floor',
   scene: insideCasinoScene,
 
+  horizon: 118,
+  scaleAtHorizon: 0.6,
+
   entries: {
-    default: { x: 160, y: 150, facing: 'back' },
-    [RoomId.OutsideCasino]: { x: 160, y: 162, facing: 'back' },
-    [RoomId.Slots]: { x: 56, y: 140, facing: 'front' },
-    [RoomId.Lounge]: { x: 164, y: 140, facing: 'front' },
-    [RoomId.Blackjack]: { x: 232, y: 140, facing: 'front' },
-    [RoomId.ElevatorLobby]: { x: 292, y: 140, facing: 'front' },
+    default: { x: 160, y: 148, facing: 'back' },
+    [RoomId.OutsideCasino]: { x: 160, y: 152, facing: 'back' },
+    [RoomId.Slots]: { x: 48, y: 130, facing: 'front' },
+    [RoomId.Lounge]: { x: 132, y: 130, facing: 'front' },
+    [RoomId.Blackjack]: { x: 212, y: 130, facing: 'front' },
+    [RoomId.ElevatorLobby]: { x: 288, y: 130, facing: 'front' },
   },
 
   describe:
@@ -117,13 +165,7 @@ export const insideCasino: RoomDef = {
     },
   ],
 
-  exits: [
-    { x: 128, y: 164, w: 64, h: 4, to: RoomId.OutsideCasino },
-    { x: 8, y: 119, w: 104, h: 9, to: RoomId.Slots },
-    { x: 136, y: 119, w: 58, h: 9, to: RoomId.Lounge },
-    { x: 200, y: 119, w: 68, h: 9, to: RoomId.Blackjack },
-    { x: 272, y: 119, w: 44, h: 9, to: RoomId.ElevatorLobby },
-  ],
+  exits: exitsOf(DOORS),
 
   onCommand(g, cmd) {
     if (cmd.is('get', ItemId.DiscoPass) || cmd.is('get', 'card')) {

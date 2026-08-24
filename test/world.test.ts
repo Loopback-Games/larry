@@ -74,13 +74,82 @@ describe('world integrity', () => {
     }
   });
 
+  it('signposts every way out', () => {
+    for (const room of ROOMS) {
+      const s = room.scene();
+      const seen: { x: number; y: number; w: number; h: number; to: string }[] = [];
+
+      for (const exit of room.exits ?? []) {
+        expect(exit.label, `${room.id} -> ${exit.to} has no label`).toBeTruthy();
+        expect(exit.label.length, `${room.id} -> ${exit.to}: label is too long to fit`).toBeLessThan(
+          16,
+        );
+        expect(exit.marker, `${room.id} -> ${exit.to} has no direction marker`).toBeTruthy();
+
+        // Small and deliberate. The old hand-written rectangles included an
+        // eighty-by-twenty-two patch of empty road and two full-width strips,
+        // which is why leaving a room so often felt like an accident.
+        expect(
+          exit.w * exit.h,
+          `${room.id} -> ${exit.to} is a ${exit.w}x${exit.h} trigger, big enough to hit by mistake`,
+        ).toBeLessThanOrEqual(900);
+
+        // Two triggers side by side with nothing between them make the choice
+        // feel random. The penthouse used to have a pair four pixels apart.
+        for (const other of seen) {
+          const apart =
+            exit.x >= other.x + other.w ||
+            other.x >= exit.x + exit.w ||
+            exit.y >= other.y + other.h ||
+            other.y >= exit.y + exit.h;
+          expect(apart, `${room.id}: exits to ${exit.to} and ${other.to} overlap`).toBe(true);
+        }
+        seen.push(exit);
+
+        // There has to be something drawn where the trigger is. This is the
+        // invariant the whole doorway module exists to hold: the cab used to
+        // be reached by walking into a bare patch of road.
+        let painted = 0;
+        for (let y = exit.y; y < exit.y + exit.h; y++) {
+          for (let x = exit.x; x < exit.x + exit.w; x++) {
+            if (s.colour[y * CANVAS_W + x] !== 0) painted++;
+          }
+        }
+        const share = painted / (exit.w * exit.h);
+        expect(
+          share,
+          `${room.id} -> ${exit.to}: nothing is drawn where the trigger is`,
+        ).toBeGreaterThan(0.15);
+      }
+    }
+  });
+
   it('lets Larry stand where each room puts him', () => {
+    const g = createGame();
+    while (g.dismissMessage());
     for (const room of ROOMS) {
       if (room.cutscene || room.closeup) continue;
-      const s = room.scene();
       for (const [name, point] of Object.entries(room.entries)) {
-        const mask = s.walk[Math.round(point.y) * CANVAS_W + Math.round(point.x)];
-        expect(mask, `${room.id}.${name} spawns inside scenery`).not.toBe(WALK_BLOCKED);
+        g.goTo(room.id);
+        // The ego is a box, not a point. Testing one pixel let the penthouse
+        // put the player half inside a coffee table, where nothing could move.
+        const half = g.ego.footHalfWidth * g.scaleAt(point.y);
+        expect(
+          g.canOccupy(point.x, point.y, half),
+          `${room.id}.${name} spawns inside scenery`,
+        ).toBe(true);
+
+        // Spawning inside an exit is what the suppression logic exists to
+        // survive; it should not have to. The chapel used to put the player in
+        // its own doorway, which then never re-armed.
+        for (const exit of room.exits ?? []) {
+          const inside =
+            point.x >= exit.x &&
+            point.x < exit.x + exit.w &&
+            point.y >= exit.y &&
+            point.y < exit.y + exit.h;
+          expect(inside, `${room.id}.${name} spawns inside the exit to ${exit.to}`).toBe(false);
+        }
       }
     }
   });

@@ -1,5 +1,5 @@
 import type { Painter } from './scene.js';
-import { drawFigure, WALK_PHASES } from './figure.js';
+import { drawFigure, WALK_PHASES, FIGURE_W, FIGURE_H } from './figure.js';
 import type { FigureStyle, Facing } from './figure.js';
 
 /** How an actor decides where to be each tick. */
@@ -76,9 +76,9 @@ export class Actor {
     this.style = options.style;
     this.render = options.render;
     this.depthOverride = options.depth;
-    this.height = options.height ?? (options.style?.height ?? 30);
-    this.width = options.width ?? 15;
-    this.footHalfWidth = options.footHalfWidth ?? 4;
+    this.height = options.height ?? (options.style?.height ?? FIGURE_H);
+    this.width = options.width ?? FIGURE_W;
+    this.footHalfWidth = options.footHalfWidth ?? 5;
     this.footHeight = options.footHeight ?? 3;
     this.fixedScale = options.fixedScale ?? options.render !== undefined;
     this.castsShadow = options.castsShadow ?? options.style !== undefined;

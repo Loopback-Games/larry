@@ -1,10 +1,19 @@
 import { paint } from '../../engine/scene.js';
-import { C, darker } from '../../engine/palette.js';
+import { C, shade } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { Actor } from '../../engine/actor.js';
 import { rng, randInt } from '../../engine/rng.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
 import type { Game } from '../../engine/engine.js';
+
+
+/** Where the floor meets the back of the room. */
+const FLOOR = 92;
+
+const DOORS: readonly Doorway[] = [
+  { to: RoomId.OutsideDisco, label: 'Street', side: 'front', x: 160, w: 46 },
+];
 
 /**
  * The disco. A lit floor, a mirror ball, and one woman at a table who is the
@@ -12,44 +21,63 @@ import type { Game } from '../../engine/engine.js';
  */
 export const insideDiscoScene = () =>
   paint((p) => {
-    p.ink(C.black).box(0, 0, p.width, p.height);
+    // ---- the room ----------------------------------------------------------
+    // Dark, but not empty: the walls are lit violet from the floor up, so the
+    // upper half of the picture reads as a room rather than as nothing.
+    p.ink(C.violetDeep).box(0, 0, p.width, p.height);
+    p.sweep(0, 0, p.width, FLOOR, -2, 0);
+    p.slab(0, 0, p.width, 8, C.ink, 1);
 
-    // Mirror ball and its scatter.
-    p.ink(C.slate).box(158, 4, 5, 10);
-    p.ink(C.white).solid([150, 14, 170, 14, 174, 26, 166, 34, 154, 34, 146, 26]);
+    // ---- mirror ball -------------------------------------------------------
+    p.ink(C.asphalt).box(158, 8, 4, 8);
+    p.ink(C.silver).solid([150, 16, 170, 16, 174, 28, 166, 36, 154, 36, 146, 28]);
     p.ink(C.grey);
-    for (let y = 16; y < 33; y += 3) p.line(147, y, 173, y);
-    for (let x = 148; x < 174; x += 4) p.line(x, 15, x, 33);
+    for (let y = 18; y < 35; y += 3) p.line(148, y, 172, y);
+    for (let x = 149; x < 173; x += 4) p.line(x, 17, x, 35);
+    p.ink(C.white).dots([154, 22, 158, 20, 162, 24]);
+    p.glow(160, 26, 30, C.violet, 0.45, [C.violetDeep, C.violetDim, C.violet]);
+
+    // Its scatter across the walls, thinning towards the edges.
     const spark = rng(0x0d15c0);
-    p.ink(C.white);
-    for (let i = 0; i < 70; i++) p.dot(randInt(spark, 0, 319), randInt(spark, 0, 88));
+    for (let i = 0; i < 90; i++) {
+      const x = randInt(spark, 0, 319);
+      const y = randInt(spark, 0, FLOOR - 4);
+      p.ink(Math.abs(x - 160) > 110 ? C.violetLit : C.lavender).dot(x, y);
+    }
 
-    // Back wall: banks of coloured lights over a DJ booth.
+    // ---- back wall: light banks over a DJ booth -----------------------------
     for (let r = 0; r < 3; r++) {
-      const colour = [C.purple, C.blue, C.maroon][r];
-      p.ink(colour);
-      for (let x = 8; x < 312; x += 22) p.box(x, 12 + r * 10, 14, 6);
+      const colour = [C.magenta, C.blue, C.crimson][r];
+      for (let x = 8; x < 312; x += 22) {
+        p.slab(x, 12 + r * 10, 14, 6, colour, 1);
+        p.glow(x + 7, 15 + r * 10, 9, shade(colour, -2), 0.35, [
+          C.violetDeep,
+          C.violetDim,
+          C.violet,
+        ]);
+      }
     }
-    p.ink(darker(C.slate)).box(120, 44, 80, 34);
-    p.ink(C.slate).outline(120, 44, 80, 34);
-    p.ink(C.black).box(126, 50, 30, 20).box(164, 50, 30, 20);
-    p.ink(C.grey).solid([132, 54, 150, 54, 150, 66, 132, 66]);
-    p.ink(C.grey).solid([170, 54, 188, 54, 188, 66, 170, 66]);
-    p.ink(C.red).dots([128, 74, 136, 74, 188, 74, 196, 74]);
+    p.slab(118, 44, 84, 36, C.asphalt, 1);
+    p.ink(C.ink).box(124, 50, 32, 22).box(164, 50, 32, 22);
+    p.slab(130, 54, 20, 14, C.pewter, 1);
+    p.slab(170, 54, 20, 14, C.pewter, 1);
+    p.ink(C.redLit).dots([126, 76, 134, 76, 186, 76, 194, 76]);
 
-    // Speaker stacks.
-    for (const sx of [16, 268]) {
-      p.ink(darker(C.brown)).box(sx, 40, 36, 74);
-      p.ink(C.black).outline(sx, 40, 36, 74);
-      p.ink(C.slate).solid([sx + 6, 50, sx + 30, 50, sx + 30, 72, sx + 6, 72]);
-      p.ink(C.black).box(sx + 12, 56, 12, 10);
-      p.ink(C.slate).box(sx + 8, 80, 20, 20);
-      p.ink(C.black).box(sx + 13, 85, 10, 10);
+    // ---- speaker stacks ----------------------------------------------------
+    for (const sx of [14, 268]) {
+      p.slab(sx, 40, 38, 76, C.woodDeep, 1);
+      p.slab(sx + 6, 50, 26, 24, C.asphalt, 1);
+      p.ink(C.ink).box(sx + 12, 56, 14, 12);
+      p.slab(sx + 8, 82, 22, 22, C.asphalt, 1);
+      p.ink(C.ink).box(sx + 13, 87, 12, 12);
+      p.contact(sx, 112, 38, 6, -2);
     }
 
-    // The lit dance floor, receding.
+    // ---- the lit dance floor -----------------------------------------------
+    // Six colours rather than eight, in a repeating order, so the floor reads
+    // as tiles catching the lights instead of as confetti.
     const rows = 6;
-    const palette = [C.pink, C.cyan, C.yellow, C.lime, C.purple, C.red, C.blue, C.white];
+    const palette = [C.pink, C.cyan, C.gold, C.greenLit, C.violetLit, C.blueLit];
     for (let r = 0; r < rows; r++) {
       const t0 = Math.pow(r / rows, 1.5);
       const t1 = Math.pow((r + 1) / rows, 1.5);
@@ -58,7 +86,7 @@ export const insideDiscoScene = () =>
       const s0 = 40 + t0 * 130;
       const s1 = 40 + t1 * 130;
       for (let c = 0; c < 8; c++) {
-        p.ink(palette[(r * 3 + c) % palette.length]);
+        p.ink(palette[(r + c) % palette.length]);
         p.solid([
           160 + ((c - 4) / 4) * s0, y0,
           160 + ((c - 3) / 4) * s0, y0,
@@ -66,22 +94,29 @@ export const insideDiscoScene = () =>
           160 + ((c - 4) / 4) * s1, y1,
         ]);
       }
+      // Far rows sit further from the lamps, which also settles the colour.
+      p.relight(0, y0, p.width, Math.max(1, y1 - y0), -2 + r * 0.5);
     }
-    p.ink(C.black).box(0, 142, p.width, p.height - 142);
-    p.ink(darker(C.slate)).line(0, 142, p.width - 1, 142);
+    p.ink(C.ink).box(0, 142, p.width, p.height - 142);
+    p.ink(C.violetDeep).box(0, 142, p.width, 6);
+    p.contact(0, 142, p.width, 8, -2);
 
-    // Booth tables either side of the floor, out of the light.
+    // ---- booth tables either side of the floor ------------------------------
     for (const [tx, ty] of [[42, 132], [274, 134]] as const) {
-      p.ink(darker(C.maroon)).solid([tx - 24, ty, tx + 24, ty, tx + 20, ty + 10, tx - 20, ty + 10]);
-      p.ink(C.maroon).line(tx - 24, ty, tx + 23, ty);
-      p.ink(C.black).box(tx - 3, ty + 10, 6, 14);
-      p.ink(darker(C.maroon)).box(tx - 14, ty + 24, 28, 4);
-      p.ink(C.yellow).box(tx - 4, ty - 6, 3, 6);
-      p.ink(C.red).dot(tx - 3, ty - 8);
+      p.ink(C.maroonDeep).solid([tx - 26, ty, tx + 26, ty, tx + 21, ty + 11, tx - 21, ty + 11]);
+      p.ink(C.maroon).line(tx - 26, ty, tx + 25, ty);
+      p.ink(C.ink).box(tx - 3, ty + 11, 7, 14);
+      p.ink(C.maroonDeep).box(tx - 15, ty + 25, 30, 4);
+      p.ink(C.gold).box(tx - 4, ty - 7, 3, 7);
+      p.ink(C.yellowPale).dot(tx - 3, ty - 9);
+      p.glow(tx - 3, ty - 9, 14, C.violetDim, 0.4, [C.ink, C.violetDeep]);
+      p.contact(tx - 26, ty + 27, 52, 5, -2);
     }
 
+    doorways(p, DOORS);
     p.depthRamp(92, p.height, 4, 14);
-    p.blockRect(0, 0, p.width, 92);
+    doorways(p, DOORS);
+    walls(p, FLOOR, DOORS);
     p.blockRect(18, 126, 50, 22);
     p.blockRect(250, 128, 50, 22);
   });
@@ -151,9 +186,12 @@ export const insideDisco: RoomDef = {
   title: 'The Disco',
   scene: insideDiscoScene,
 
+  horizon: 92,
+  scaleAtHorizon: 0.56,
+
   entries: {
-    default: { x: 160, y: 160, facing: 'back' },
-    [RoomId.OutsideDisco]: { x: 160, y: 156, facing: 'back' },
+    default: { x: 160, y: 154, facing: 'back' },
+    [RoomId.OutsideDisco]: { x: 160, y: 152, facing: 'back' },
   },
 
   describe:
@@ -194,7 +232,7 @@ export const insideDisco: RoomDef = {
     { noun: 'table', synonyms: ['tables', 'booths'], look: 'Two booth tables, each with a candle in a red glass.' },
   ],
 
-  exits: [{ x: 128, y: 162, w: 64, h: 6, to: RoomId.OutsideDisco }],
+  exits: exitsOf(DOORS),
 
   onCommand(g, cmd) {
     // ---- sitting down -----------------------------------------------------

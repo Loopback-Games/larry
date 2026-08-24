@@ -1,8 +1,29 @@
 import { paint } from '../../engine/scene.js';
 import { C, darker } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { Actor } from '../../engine/actor.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
+
+/** Where the floor meets the back of the room. */
+const FLOOR = 144;
+
+const DOORS: readonly Doorway[] = [
+  {
+    to: RoomId.InsideCasino,
+    label: 'Casino',
+    side: 'back',
+    x: 162,
+    y: FLOOR,
+    w: 50,
+    h: 44,
+    kind: 'double',
+    colour: C.gold,
+    through: C.crimson,
+    spill: C.goldLit,
+  },
+  { to: RoomId.Taxi, label: 'Cab', side: 'right', y: 156, w: 30 },
+];
 
 /**
  * The front of the casino hotel. A great deal of light spent on very little
@@ -63,7 +84,8 @@ export const outsideCasinoScene = () =>
     p.ink(C.grey).line(0, 156, p.width - 1, 156);
 
     p.depthRamp(144, p.height, 6, 14);
-    p.blockRect(0, 0, p.width, 144);
+    doorways(p, DOORS);
+    walls(p, FLOOR, DOORS);
     p.blockRect(4, 140, 86, 8);
   });
 
@@ -91,10 +113,13 @@ export const outsideCasino: RoomDef = {
   title: 'Outside the Casino',
   scene: outsideCasinoScene,
 
+  horizon: 144,
+  scaleAtHorizon: 0.8,
+
   entries: {
-    default: { x: 250, y: 160, facing: 'left' },
-    [RoomId.Taxi]: { x: 292, y: 160, facing: 'left' },
-    [RoomId.InsideCasino]: { x: 162, y: 162, facing: 'front' },
+    default: { x: 236, y: 158, facing: 'left' },
+    [RoomId.Taxi]: { x: 286, y: 158, facing: 'left' },
+    [RoomId.InsideCasino]: { x: 162, y: 152, facing: 'front' },
   },
 
   describe:
@@ -121,10 +146,7 @@ export const outsideCasino: RoomDef = {
     { noun: 'doors', synonyms: ['revolving doors', 'entrance'], look: 'Gold-framed revolving doors turning slowly with nobody in them.' },
   ],
 
-  exits: [
-    { x: 126, y: 148, w: 72, h: 10, to: RoomId.InsideCasino },
-    { x: 296, y: 148, w: 24, h: 20, to: RoomId.Taxi },
-  ],
+  exits: exitsOf(DOORS),
 
   onCommand(g, cmd) {
     const buyingApple =

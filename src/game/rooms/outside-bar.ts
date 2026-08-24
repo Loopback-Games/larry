@@ -1,106 +1,160 @@
 import { paint } from '../../engine/scene.js';
-import { C } from '../../engine/palette.js';
-import { WALK_BLOCKED } from '../../constants.js';
+import { C, shade } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { Actor } from '../../engine/actor.js';
 import { drawTaxi } from './props.js';
 import { RoomId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
 
+/** Where the pavement meets the front of the building. */
+const FLOOR = 118;
+
+/**
+ * The ways out, declared once.
+ *
+ * The scene paints these and the room's exits are derived from them, so the
+ * cab is reached by walking to a cab and the alley by walking to an alley.
+ */
+const DOORS: readonly Doorway[] = [
+  {
+    to: RoomId.InsideBar,
+    label: "Lefty's",
+    side: 'back',
+    x: 160,
+    y: FLOOR,
+    w: 34,
+    h: 42,
+    colour: C.brown,
+    through: C.bronze,
+    spill: C.goldLit,
+  },
+  { to: RoomId.DarkStreet, label: 'West', side: 'left', y: 142, w: 44 },
+  { to: RoomId.Alley, label: 'Alley', side: 'right', y: 142, w: 44 },
+  { to: RoomId.Taxi, label: 'Cab', side: 'back', x: 128, y: 150, w: 28, kind: 'plain' },
+];
+
 /**
  * Outside Lefty's — where the game starts. A dead-end block at two in the
- * morning: one lit doorway, a hotel sign down the street, and nothing else open.
+ * morning: one lit doorway, a cab at the kerb, and nothing else open.
  */
 export const outsideBarScene = () =>
   paint((p) => {
     // ---- night sky --------------------------------------------------------
     // Not flat black: the city throws enough light to lift the horizon.
     p.ink(C.black).box(0, 0, p.width, p.height);
-    p.gradient(0, 30, p.width, 46, C.black, C.navy, 0, 0.85);
-    p.ink(C.white).stars(0, 0, p.width, 40, 70, 0x1e5127);
-    p.ink(C.slate).stars(0, 0, p.width, 56, 40, 0x51e712);
-    p.ink(C.slate).dots([36, 14, 37, 13, 38, 14, 37, 15, 36, 16, 38, 16]);
-    p.ink(C.grey).dot(37, 14);
-    p.skyline(74, 20, 52, C.navy, C.yellow, 0xbadc0de);
+    p.gradient(0, 6, p.width, 68, C.black, C.navyDeep, 0, 1);
+    p.ink(C.navyDeep).box(0, 60, p.width, 14);
+    p.sweep(0, 40, p.width, 34, 0, 1);
+    p.ink(C.silver).stars(0, 0, p.width, 44, 60, 0x1e5127);
+    p.ink(C.steel).stars(0, 0, p.width, 60, 40, 0x51e712);
+    p.skyline(70, 18, 46, C.violetDeep, C.gold, 0xbadc0de);
+    p.relight(0, 24, p.width, 48, -1);
+
+    // ---- the block --------------------------------------------------------
+    // Neighbouring frontages, shut and unlit, so the bar is not a lit island
+    // floating in a black void.
+    p.slab(0, 62, 50, FLOOR - 62, C.asphalt, 1);
+    p.slab(266, 54, 54, FLOOR - 54, C.asphalt, 1);
+    p.ink(C.asphaltDeep).box(4, 92, 40, 24).box(276, 84, 38, 30);
+    p.relight(0, 62, 50, FLOOR - 62, -1);
+    p.relight(266, 54, 54, FLOOR - 54, -1);
 
     // ---- the bar ----------------------------------------------------------
-    p.ink(C.grey).box(48, 38, 220, 84);
-    p.ink(C.slate).box(48, 38, 220, 4);
-    p.ink(C.black).line(48, 37, 267, 37);
-    p.bricks(48, 92, 220, 30, C.maroon, 6, 20);
-    p.ink(C.slate).line(48, 92, 267, 92);
+    // One storey of rendered stucco over a brick base, lit from the left by a
+    // streetlamp somewhere off frame. Kept well above the sky in value, or the
+    // building and the night read as the same surface.
+    p.slab(46, 34, 224, FLOOR - 34, C.parchment, 1);
+    p.sweep(46, 34, 224, FLOOR - 34, 1, -1);
+    p.ink(C.ivory).box(44, 29, 228, 5);
+    p.ink(C.khaki).box(44, 34, 228, 2);
+    p.bricks(46, 90, 224, 28, C.woodDeep, 7, 22);
+    p.contact(46, 34, 224, 10, -2);
+    // The right-hand end falls away from the lamp.
+    p.relight(206, 34, 64, FLOOR - 34, -1);
+    p.relight(240, 34, 30, FLOOR - 34, -1);
 
-    // Neon sign over the door: a hot pink tube in a dark housing, throwing a
-    // little of its own light onto the brickwork around it.
-    p.glow(160, 59, 30, C.maroon, 0.45);
-    p.ink(C.black).box(112, 48, 96, 22);
-    p.ink(C.maroon).outline(112, 48, 96, 22);
-    p.ink(C.pink).outline(117, 52, 86, 14);
-    p.ink(C.red).outline(118, 53, 84, 12);
-    p.ink(C.pink).dots([124, 58, 130, 58, 190, 60, 196, 60]);
+    // Neon over the door: a hot tube in a dark housing, throwing its own light
+    // onto the render around it and into the night above.
+    p.slab(112, 44, 96, 24, C.charcoal, 1);
+    p.ink(C.magenta).outline(117, 48, 86, 16);
+    p.ink(C.pinkLit).outline(118, 49, 84, 14);
+    p.ink(C.pinkPale).dots([124, 54, 130, 54, 190, 58, 196, 58]);
+    p.glow(160, 56, 34, C.plum, 0.5);
+    p.lightPool(160, 62, 60, 30, 1);
 
-    // Upper windows: two lit, two not, one with a silhouette in it.
-    const upper = [
-      [62, C.navy],
-      [110, C.yellow],
-      [166, C.navy],
-      [222, C.yellow],
-    ] as const;
-    for (const [wx, glass] of upper) p.window(wx, 62, 34, 24, glass, C.slate);
-    p.ink(C.brown).box(232, 68, 6, 12);
+    // Upper windows: two lit, two not, one with someone still awake in it.
+    for (const [wx, glass] of [
+      [60, C.navy],
+      [108, C.goldLit],
+      [212, C.navy],
+    ] as const) {
+      p.window(wx, 58, 34, 24, glass, C.khaki);
+      if (glass !== C.navy) p.glow(wx + 17, 70, 16, C.bronze, 0.35);
+    }
+    p.ink(C.charcoal).box(118, 64, 7, 14);
 
-    // ---- doorway ----------------------------------------------------------
-    p.ink(C.black).box(142, 88, 36, 34);
-    p.ink(C.brown).outline(140, 86, 40, 36);
-    p.ink(C.yellow).box(146, 92, 28, 12);
-    p.ink(C.brown).box(146, 106, 28, 16);
-    p.ink(C.slate).line(146, 106, 173, 106);
-    p.ink(C.yellow).dot(170, 114).dot(171, 114);
+    // Ground-floor windows, painted over from the inside.
+    for (const wx of [60, 212]) {
+      p.window(wx, 92, 46, 20, C.tealDeep, C.woodDeep, false);
+      p.ink(C.teal).line(wx + 2, 96, wx + 42, 106);
+    }
 
-    // Painted-over ground floor windows.
-    p.window(62, 96, 46, 18, C.teal, C.slate, false);
-    p.window(212, 96, 46, 18, C.teal, C.slate, false);
-    p.ink(C.slate).line(64, 100, 106, 110).line(214, 110, 256, 100);
+    // ---- pavement and road ------------------------------------------------
+    // Pavement kept clearly lighter than the road, or the two read as one
+    // surface and the kerb disappears.
+    p.ink(C.concreteLit).box(0, FLOOR, p.width, 26);
+    p.sweep(0, FLOOR, p.width, 26, -1, 1);
+    p.ink(C.pewterLit).box(0, 142, p.width, 2);
+    p.ink(C.asphalt).box(0, 144, p.width, p.height - 144);
+    p.sweep(0, 144, p.width, 24, -1, 1);
+    p.ink(C.gold);
+    for (let x = 10; x < p.width; x += 46) p.box(x, 160, 22, 3);
+    p.relight(0, 160, p.width, 8, -1);
 
-    // ---- street -----------------------------------------------------------
-    // The pavement lightens towards the kerb, away from the building's shadow.
-    p.ink(C.slate).box(0, 122, p.width, 18);
-    p.gradient(0, 122, p.width, 10, C.slate, C.black, 0.7, 0);
-    p.ink(C.grey).line(0, 122, p.width - 1, 122);
-    p.ink(C.black).line(0, 139, p.width - 1, 139);
-    p.ink(C.black).box(0, 140, p.width, p.height - 140);
-    p.ink(C.slate).line(0, 140, p.width - 1, 140);
-    p.ink(C.yellow);
-    for (let x = 6; x < p.width; x += 44) p.box(x, 156, 20, 3);
+    // Cracks and a drain, because the block has seen things.
+    p.ink(C.asphaltDeep).path([24, FLOOR, 30, 128, 26, 138]).path([286, FLOOR, 292, 132]);
+    p.slab(92, 130, 16, 8, C.asphalt, 1);
+    p.ink(C.asphaltDeep).line(94, 133, 106, 133).line(94, 135, 106, 135);
 
-    // Pavement cracks and a drain, because the block has seen things.
-    p.ink(C.black);
-    p.path([24, 122, 30, 130, 26, 138]).path([286, 122, 292, 132]);
-    p.ink(C.slate).box(96, 132, 14, 6);
-    p.ink(C.black).line(98, 134, 108, 134).line(98, 136, 108, 136);
+    // The building casts a shadow across the pavement it stands on.
+    p.contact(0, FLOOR, p.width, 12, -2);
 
-    // ---- kerbside pole with a flyer ---------------------------------------
-    p.ink(C.brown).box(284, 74, 5, 50);
-    p.ink(C.slate).box(283, 73, 7, 3);
-    p.ink(C.white).box(276, 88, 18, 14);
-    p.ink(C.slate).line(278, 92, 292, 92).line(278, 95, 290, 95).line(278, 98, 291, 98);
+    // ---- doorways ----------------------------------------------------------
+    doorways(p, DOORS);
 
     // A doormat, because someone here has a sense of humour.
-    p.ink(C.brown).box(144, 123, 32, 7);
-    p.ink(C.black).line(148, 126, 172, 126);
+    p.slab(144, FLOOR + 2, 32, 7, C.woodDim, 1);
+    p.ink(C.woodDeep).line(148, FLOOR + 5, 172, FLOOR + 5);
+
+    // The kerbside spot beside the cab's open door, so the way into it reads
+    // as somewhere to stand rather than a patch of empty road.
+    p.ink(C.gold).box(114, 149, 28, 1).box(114, 160, 28, 1);
+    p.ink(shade(C.gold, -2)).box(114, 150, 28, 10);
+    p.lightPool(128, 155, 22, 10, 1);
+
+    // ---- kerbside pole with a flyer ---------------------------------------
+    p.slab(284, 68, 6, 50, C.woodDim, 1);
+    p.ink(C.pewter).box(283, 67, 8, 3);
+    p.slab(274, 84, 20, 15, C.bone, 1);
+    p.ink(C.khaki).line(277, 88, 291, 88).line(277, 91, 289, 91).line(277, 94, 290, 94);
+
+    p.vignette(-1);
 
     // ---- depth and movement ------------------------------------------------
-    p.depthRamp(122, p.height, 5, 14);
-    p.blockRect(0, 0, p.width, 122);
-    p.saved((q) => q.noInk().noDepth().walk(WALK_BLOCKED).box(280, 112, 14, 14));
+    p.depthRamp(FLOOR, p.height, 5, 14);
+    walls(p, FLOOR, DOORS);
+    p.blockRect(278, 108, 18, 12);
+    // The parked cab is solid; you walk to its door rather than through it.
+    p.blockRect(158, 142, 120, 26);
   });
 
 const TAXI = new Actor({
   id: 'taxi',
-  x: 66,
-  y: 166,
+  x: 216,
+  y: 168,
   depth: 15,
-  width: 96,
-  height: 34,
+  width: 104,
+  height: 30,
   render: (p, a) => drawTaxi(p, a.x, a.y),
 });
 
@@ -109,11 +163,15 @@ export const outsideBar: RoomDef = {
   title: "Outside Lefty's",
   scene: outsideBarScene,
 
+  horizon: FLOOR,
+  scaleAtHorizon: 0.66,
+
   entries: {
-    default: { x: 160, y: 134, facing: 'back' },
+    default: { x: 196, y: 138, facing: 'left' },
     [RoomId.InsideBar]: { x: 160, y: 132, facing: 'front' },
-    [RoomId.Alley]: { x: 292, y: 134, facing: 'left' },
-    [RoomId.DarkStreet]: { x: 28, y: 134, facing: 'right' },
+    [RoomId.Alley]: { x: 286, y: 140, facing: 'left' },
+    [RoomId.DarkStreet]: { x: 34, y: 140, facing: 'right' },
+    [RoomId.Taxi]: { x: 128, y: 162, facing: 'right' },
   },
 
   describe:
@@ -178,12 +236,7 @@ export const outsideBar: RoomDef = {
     },
   ],
 
-  exits: [
-    { x: 142, y: 122, w: 36, h: 8, to: RoomId.InsideBar },
-    { x: 26, y: 146, w: 80, h: 22, to: RoomId.Taxi },
-    { x: 300, y: 122, w: 20, h: 18, to: RoomId.Alley },
-    { x: 0, y: 122, w: 20, h: 18, to: RoomId.DarkStreet },
-  ],
+  exits: exitsOf(DOORS),
 
   onEnter(g) {
     if (!g.flag('seenOpening')) {

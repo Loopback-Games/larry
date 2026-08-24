@@ -1,8 +1,34 @@
 import { paint } from '../../engine/scene.js';
 import { C, darker } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { Actor } from '../../engine/actor.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
+
+/** Where the floor meets the back of the room. */
+const FLOOR = 128;
+
+const DOORS: readonly Doorway[] = [
+  { to: RoomId.Taxi, label: 'Cab', side: 'left', y: 152, w: 36 },
+  {
+    to: RoomId.InsideDisco,
+    label: 'Disco',
+    side: 'back',
+    x: 165,
+    y: FLOOR,
+    w: 48,
+    h: 50,
+    kind: 'double',
+    colour: C.blue,
+    through: C.violetDeep,
+    spill: C.pinkLit,
+    when: (g) =>
+      g.hasAwarded('showed-pass')
+        ? true
+        : 'The doorman moves about four inches and somehow fills the entire ' +
+          'doorway. "Members," he says.',
+  },
+];
 
 /**
  * Outside the disco. A rope, a doorman, and a queue of nobody, which somehow
@@ -54,7 +80,8 @@ export const outsideDiscoScene = () =>
     p.ink(C.pink).box(0, 148, p.width, 2);
 
     p.depthRamp(128, p.height, 5, 14);
-    p.blockRect(0, 0, p.width, 128);
+    doorways(p, DOORS);
+    walls(p, FLOOR, DOORS);
     p.blockRect(88, 122, 14, 10);
     p.blockRect(228, 122, 14, 10);
   });
@@ -83,10 +110,13 @@ export const outsideDisco: RoomDef = {
   title: 'Outside the Disco',
   scene: outsideDiscoScene,
 
+  horizon: 128,
+  scaleAtHorizon: 0.64,
+
   entries: {
-    default: { x: 60, y: 152, facing: 'right' },
-    [RoomId.Taxi]: { x: 40, y: 154, facing: 'right' },
-    [RoomId.InsideDisco]: { x: 164, y: 136, facing: 'front' },
+    default: { x: 84, y: 152, facing: 'right' },
+    [RoomId.Taxi]: { x: 44, y: 154, facing: 'right' },
+    [RoomId.InsideDisco]: { x: 165, y: 138, facing: 'front' },
   },
 
   describe:
@@ -111,18 +141,7 @@ export const outsideDisco: RoomDef = {
     { noun: 'neon', synonyms: ['sign', 'lights'], look: 'Three bars of neon in pink, blue and yellow. The name of the place is not written anywhere. If you have to ask, and so on.' },
   ],
 
-  exits: [
-    { x: 0, y: 146, w: 30, h: 22, to: RoomId.Taxi },
-    {
-      x: 126, y: 128, w: 78, h: 8,
-      to: RoomId.InsideDisco,
-      when: (g) =>
-        g.hasAwarded('showed-pass')
-          ? true
-          : 'The doorman moves about four inches and somehow fills the entire ' +
-            'doorway. "Members," he says.',
-    },
-  ],
+  exits: exitsOf(DOORS),
 
   onCommand(g, cmd) {
     const showingPass =

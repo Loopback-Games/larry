@@ -1,8 +1,49 @@
 import { paint } from '../../engine/scene.js';
-import { C, darker } from '../../engine/palette.js';
+import { C } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { Actor } from '../../engine/actor.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
+
+/** Where the corridor floor meets the far wall. */
+const FLOOR = 124;
+
+const DOORS: readonly Doorway[] = [
+  {
+    to: RoomId.BarToilet,
+    label: 'Washroom',
+    side: 'back',
+    x: 40,
+    y: FLOOR + 22,
+    w: 32,
+    h: 60,
+    colour: C.pewter,
+    through: C.black,
+  },
+  {
+    to: RoomId.BarBackroom,
+    label: 'Storeroom',
+    side: 'back',
+    x: 160,
+    y: FLOOR,
+    w: 30,
+    h: 52,
+    colour: C.brown,
+    through: C.black,
+  },
+  {
+    to: RoomId.InsideBar,
+    label: 'Bar',
+    side: 'back',
+    x: 280,
+    y: FLOOR + 22,
+    w: 32,
+    h: 60,
+    colour: C.brown,
+    through: C.bronze,
+    spill: C.gold,
+  },
+];
 
 /**
  * The corridor behind the bar. A drunk has come to rest against the wall with
@@ -11,70 +52,72 @@ import type { RoomDef } from '../../engine/room.js';
  */
 export const barHallwayScene = () =>
   paint((p) => {
-    p.ink(C.brown).box(0, 0, p.width, 126);
-    p.ink(darker(C.brown)).box(0, 0, p.width, 8);
+    // ---- corridor shell ---------------------------------------------------
+    // Built back to front: the far wall, then the side walls closing in on it,
+    // so the room reads as a passage rather than a flat brown field.
+    p.ink(C.brown).box(0, 0, p.width, FLOOR);
+    p.ink(C.charcoal).box(0, 0, p.width, 10);
 
-    // Wainscoting and a wallpaper the colour of old tea.
-    p.ink(C.maroon).box(0, 70, p.width, 12);
-    p.ink(C.brown).box(0, 82, p.width, 44);
-    p.ink(darker(C.brown));
-    for (let x = 8; x < p.width; x += 16) p.line(x, 8, x, 68);
+    // Far wall at the end of the passage.
+    p.slab(118, 22, 84, FLOOR - 22, C.brownLit, 1);
+    p.sweep(118, 22, 84, FLOOR - 22, 1, 0);
 
-    // Perspective: the corridor narrows towards a door at the far end.
-    p.ink(C.black).path([0, 8, 60, 34, 60, 126]).path([p.width - 1, 8, 260, 34, 260, 126]);
-    p.ink(darker(C.brown)).fill(30, 40).fill(290, 40);
+    // Side walls, angled in. Darker than the far wall so the corner reads.
+    p.ink(C.brown).solid([0, 0, 118, 22, 118, FLOOR, 0, p.height]);
+    p.ink(C.brown).solid([p.width, 0, 202, 22, 202, FLOOR, p.width, p.height]);
+    p.sweep(0, 0, 118, p.height, -1, 1);
+    p.sweep(202, 0, 118, p.height, -1, 1);
+    p.ink(C.woodDim).path([0, 0, 118, 22, 118, FLOOR]);
+    p.ink(C.woodDim).path([p.width - 1, 0, 202, 22, 202, FLOOR]);
 
-    // Toilet door, left.
-    p.ink(C.slate).box(12, 40, 40, 84);
-    p.ink(C.black).outline(12, 40, 40, 84);
-    p.ink(C.white).box(24, 48, 16, 12);
-    p.ink(C.black).line(28, 52, 36, 52).line(28, 56, 34, 56);
-    p.ink(C.yellow).dot(46, 84).dot(47, 84);
+    // Wainscoting, following the same perspective as the walls.
+    p.ink(C.maroonDeep).solid([0, 96, 118, 78, 202, 78, p.width, 96, p.width, 108, 202, 92, 118, 92, 0, 108]);
+    p.ink(C.maroon).path([0, 96, 118, 78, 202, 78, p.width - 1, 96]);
 
-    // Door back to the bar, right.
-    p.ink(C.brown).box(268, 40, 40, 84);
-    p.ink(C.black).outline(268, 40, 40, 84);
-    p.ink(C.yellow).dot(274, 84).dot(275, 84);
+    // Wallpaper stripes on the far wall only; on the side walls they would
+    // fight the perspective rather than support it.
+    p.ink(C.woodDim);
+    for (let x = 124; x < 200; x += 12) p.line(x, 24, x, 76);
 
-    // Storeroom door at the end of the corridor.
-    p.ink(C.black).box(146, 44, 28, 76);
-    p.ink(C.slate).outline(145, 43, 30, 78);
-    p.ink(C.yellow).dot(170, 84);
+    // ---- a bare bulb, and the only light in here ---------------------------
+    p.ink(C.charcoal).box(159, 10, 2, 12);
+    p.ink(C.yellowPale).dot(160, 23).dot(159, 22).dot(161, 22).dot(160, 21);
+    p.glow(160, 22, 16, C.gold, 0.45, [C.brown, C.brownLit, C.tan]);
 
-    // A bare bulb and its pool of light.
-    p.ink(C.black).line(160, 8, 160, 20);
-    p.ink(C.yellow).dot(160, 22).dot(159, 21).dot(161, 21).dot(160, 20);
+    // ---- floor -------------------------------------------------------------
+    p.floorPlane(FLOOR, p.height, C.brown, 160, 9);
 
-    // Floor: worn boards running away from the camera.
-    p.ink(C.brown).box(0, 126, p.width, p.height - 126);
-    p.ink(darker(C.brown));
-    for (let i = -6; i <= 6; i++) p.line(160 + i * 12, 126, 160 + i * 46, p.height - 1);
-    p.ink(C.black).line(0, 126, p.width - 1, 126);
+    // ---- doors -------------------------------------------------------------
+    doorways(p, DOORS);
+    p.lightPool(160, 46, 54, 40, 1);
 
     // A bucket nobody has emptied.
-    p.ink(C.slate).solid([196, 152, 214, 152, 211, 166, 199, 166]);
-    p.ink(C.teal).box(198, 154, 14, 3);
+    p.ink(C.pewter).solid([210, 148, 230, 148, 226, 164, 214, 164]);
+    p.ink(C.pewterLit).line(210, 148, 229, 148);
+    p.ink(C.tealLit).box(213, 151, 14, 3);
+    p.contact(208, 160, 26, 6, -2);
 
-    p.depthRamp(126, p.height, 5, 14);
-    p.blockRect(0, 0, p.width, 126);
-    p.blockRect(192, 148, 26, 20);
+    p.vignette(-1);
+    p.depthRamp(FLOOR, p.height, 5, 14);
+    walls(p, FLOOR, DOORS);
+    p.blockRect(206, 144, 28, 22);
   });
 
 const DRUNK = new Actor({
   id: 'drunk',
-  x: 96,
-  y: 150,
+  x: 104,
+  y: 156,
   facing: 'right',
   style: {
-    hair: C.grey,
+    hair: C.silver,
     hairStyle: 'short',
-    skin: C.pink,
-    top: C.green,
-    shirt: C.white,
+    skin: C.skinMid,
+    top: C.greenDim,
+    shirt: C.bone,
     bottom: C.navy,
-    shoes: C.brown,
-    build: 4,
-    height: 22,
+    shoes: C.woodDeep,
+    build: 5,
+    height: 28,
   },
 });
 
@@ -83,11 +126,14 @@ export const barHallway: RoomDef = {
   title: 'Behind the Bar',
   scene: barHallwayScene,
 
+  horizon: FLOOR,
+  scaleAtHorizon: 0.58,
+
   entries: {
-    default: { x: 250, y: 148, facing: 'left' },
-    [RoomId.InsideBar]: { x: 276, y: 148, facing: 'left' },
-    [RoomId.BarToilet]: { x: 60, y: 148, facing: 'right' },
-    [RoomId.BarBackroom]: { x: 160, y: 140, facing: 'front' },
+    default: { x: 190, y: 158, facing: 'left' },
+    [RoomId.InsideBar]: { x: 258, y: 158, facing: 'left' },
+    [RoomId.BarToilet]: { x: 66, y: 158, facing: 'right' },
+    [RoomId.BarBackroom]: { x: 160, y: 136, facing: 'front' },
   },
 
   describe:
@@ -122,11 +168,7 @@ export const barHallway: RoomDef = {
     { noun: 'bulb', synonyms: ['light', 'lamp'], look: 'One bare bulb doing the work of four.' },
   ],
 
-  exits: [
-    { x: 296, y: 128, w: 24, h: 30, to: RoomId.InsideBar },
-    { x: 0, y: 128, w: 24, h: 30, to: RoomId.BarToilet },
-    { x: 146, y: 126, w: 28, h: 6, to: RoomId.BarBackroom },
-  ],
+  exits: exitsOf(DOORS),
 
   onCommand(g, cmd) {
     if (cmd.is('get', ItemId.Rose)) {

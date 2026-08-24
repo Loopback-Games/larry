@@ -1,8 +1,29 @@
 import { paint } from '../../engine/scene.js';
 import { C, darker } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { Actor } from '../../engine/actor.js';
 import { RoomId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
+
+/** Where the floor meets the back of the room. */
+const FLOOR = 128;
+
+const DOORS: readonly Doorway[] = [
+  {
+    to: RoomId.InsideChapel,
+    label: 'Chapel',
+    side: 'back',
+    x: 160,
+    y: FLOOR,
+    w: 44,
+    h: 46,
+    kind: 'double',
+    colour: C.gold,
+    through: C.bronze,
+    spill: C.yellowPale,
+  },
+  { to: RoomId.Taxi, label: 'Cab', side: 'right', y: 150, w: 32 },
+];
 
 /**
  * The all-night wedding chapel. Neon hearts, plastic flowers, and a man in a
@@ -54,7 +75,8 @@ export const outsideChapelScene = () =>
     p.ink(C.slate).line(0, 144, p.width - 1, 144);
 
     p.depthRamp(128, p.height, 5, 14);
-    p.blockRect(0, 0, p.width, 128);
+    doorways(p, DOORS);
+    walls(p, FLOOR, DOORS);
   });
 
 const FLASHER = new Actor({
@@ -80,10 +102,13 @@ export const outsideChapel: RoomDef = {
   title: 'Outside the Chapel',
   scene: outsideChapelScene,
 
+  horizon: 128,
+  scaleAtHorizon: 0.66,
+
   entries: {
-    default: { x: 250, y: 152, facing: 'left' },
-    [RoomId.Taxi]: { x: 292, y: 152, facing: 'left' },
-    [RoomId.InsideChapel]: { x: 160, y: 138, facing: 'front' },
+    default: { x: 232, y: 152, facing: 'left' },
+    [RoomId.Taxi]: { x: 286, y: 152, facing: 'left' },
+    [RoomId.InsideChapel]: { x: 160, y: 136, facing: 'front' },
   },
 
   describe:
@@ -108,10 +133,7 @@ export const outsideChapel: RoomDef = {
     { noun: 'steeple', synonyms: ['spire'], look: 'A steeple with a small gold cross that is, on closer inspection, a small gold dollar sign.' },
   ],
 
-  exits: [
-    { x: 134, y: 128, w: 52, h: 8, to: RoomId.InsideChapel },
-    { x: 296, y: 130, w: 24, h: 30, to: RoomId.Taxi },
-  ],
+  exits: exitsOf(DOORS),
 
   onCommand(g, cmd) {
     if (cmd.is('talk', 'flasher') || (cmd.verb === 'talk' && cmd.object === null)) {

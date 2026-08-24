@@ -1,10 +1,31 @@
 import { paint } from '../../engine/scene.js';
 import { C, darker } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { Actor } from '../../engine/actor.js';
 import { drawPayphone } from './props.js';
 import { HOTLINE, SCRATCHED, DELIVERY, isNumber, dialledNumber } from '../phone.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
+
+/** Where the floor meets the back of the room. */
+const FLOOR = 126;
+
+const DOORS: readonly Doorway[] = [
+  {
+    to: RoomId.InsideStore,
+    label: 'Store',
+    side: 'back',
+    x: 238,
+    y: FLOOR,
+    w: 40,
+    h: 46,
+    kind: 'double',
+    colour: C.silver,
+    through: C.tealDeep,
+    spill: C.cyanLit,
+  },
+  { to: RoomId.Taxi, label: 'Cab', side: 'left', y: 152, w: 36 },
+];
 
 /**
  * The corner outside the liquor store: a payphone, a man on the step who would
@@ -58,7 +79,8 @@ export const outsideStoreScene = () =>
     p.ink(C.maroon).box(20, 110, 18, 5).box(26, 100, 6, 5);
 
     p.depthRamp(126, p.height, 5, 14);
-    p.blockRect(0, 0, p.width, 126);
+    doorways(p, DOORS);
+    walls(p, FLOOR, DOORS);
     p.blockRect(56, 118, 30, 12);
     p.blockRect(18, 118, 22, 10);
   });
@@ -97,10 +119,13 @@ export const outsideStore: RoomDef = {
   title: 'Outside the Store',
   scene: outsideStoreScene,
 
+  horizon: 126,
+  scaleAtHorizon: 0.66,
+
   entries: {
-    default: { x: 200, y: 150, facing: 'front' },
-    [RoomId.InsideStore]: { x: 238, y: 142, facing: 'front' },
-    [RoomId.Taxi]: { x: 60, y: 156, facing: 'right' },
+    default: { x: 176, y: 150, facing: 'right' },
+    [RoomId.InsideStore]: { x: 238, y: 134, facing: 'front' },
+    [RoomId.Taxi]: { x: 40, y: 152, facing: 'right' },
   },
 
   describe:
@@ -135,10 +160,7 @@ export const outsideStore: RoomDef = {
     { noun: 'hydrant', look: 'A fire hydrant wearing a dent the exact width of a car bumper.' },
   ],
 
-  exits: [
-    { x: 216, y: 128, w: 44, h: 9, to: RoomId.InsideStore },
-    { x: 0, y: 144, w: 40, h: 24, to: RoomId.Taxi },
-  ],
+  exits: exitsOf(DOORS),
 
   onTick(g) {
     // Once you have made the joke call, the phone rings back.

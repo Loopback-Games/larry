@@ -1,11 +1,12 @@
 import { Surface } from './raster.js';
 import { Painter } from './scene.js';
-import { darker } from './palette.js';
+import { C, darker } from './palette.js';
 import { Actor } from './actor.js';
 import { Command, EMPTY_COMMAND, parse } from './parser.js';
 import { Vocabulary } from './vocabulary.js';
-import type { RoomDef, Hotspot, EntryPoint } from './room.js';
+import type { RoomDef, Hotspot, EntryPoint, Exit } from './room.js';
 import { WALK_BLOCKED, WALK_WATER, CANVAS_W, CANVAS_H, FOOT_ROWS } from '../constants.js';
+import { GLYPH_H } from './font.js';
 
 /** Serialisable game progress. */
 export interface SaveData {
@@ -88,6 +89,9 @@ export class Game {
    * one is armed only once the ego has stepped clear of it.
    */
   private suppressedExits = new Set<number>();
+
+  /** Waypoints the ego is walking through after a tap. Empty when idle. */
+  private route: Point[] = [];
 
   /** Last command, for `again`. */
   private lastCommand: Command = EMPTY_COMMAND;
@@ -268,6 +272,7 @@ export class Game {
     this.inputDx = 0;
     this.inputDy = 0;
 
+    this.route = [];
     this.suppressedExits = new Set(
       (room.exits ?? [])
         .map((exit, index) => (this.inExit(exit, this.ego.x, this.ego.y) ? index : -1))
@@ -324,6 +329,7 @@ export class Game {
   steer(dx: number, dy: number): void {
     this.inputDx = Math.sign(dx);
     this.inputDy = Math.sign(dy);
+    if (this.inputDx !== 0 || this.inputDy !== 0) this.route = [];
     if (dx !== 0 || dy !== 0) {
       this.ego.facing =
         Math.abs(dx) >= Math.abs(dy)
@@ -340,7 +346,6 @@ export class Game {
     return { dx: this.inputDx, dy: this.inputDy };
   }
 
-  /** True when an actor of this height may stand with its feet at (x, y). */
   /** True when a single point is standable. Used by tap-to-walk and tests. */
   canStand(x: number, y: number, swimmer = false): boolean {
     return this.canOccupy(x, y, 0, swimmer);
@@ -358,7 +363,10 @@ export class Game {
     const fy = Math.round(y);
     if (fy < 1 || fy > CANVAS_H - 1) return false;
 
-    if (fy < this.horizon) return false;
+    // The walk mask decides what is standable, not the horizon. Every room
+    // blocks the wall above its floor line, and treating the horizon as a hard
+    // ceiling as well made a staircase impossible to climb: the steps behind
+    // the bar were painted, carved into the mask, and still unwalkable.
 
     const left = Math.round(x - halfWidth);
     const right = Math.round(x + halfWidth);
@@ -457,11 +465,18 @@ export class Game {
       return;
     }
 
-    // Larry follows the held direction.
-    const speed = this.ego.speed;
-    const moved = this.moveActor(this.ego, this.inputDx * speed, this.inputDy * speed);
-    this.ego.moving = moved;
-    if (moved) this.ego.advanceAnimation();
+    // Larry follows the held direction, or the route from a tap if there is no
+    // key down. The ego is not in `actors`, so its behaviour has to be stepped
+    // here explicitly or tap-to-walk silently does nothing.
+    if (this.inputDx !== 0 || this.inputDy !== 0) {
+      this.route = [];
+      const speed = this.ego.speed;
+      const moved = this.moveActor(this.ego, this.inputDx * speed, this.inputDy * speed);
+      this.ego.moving = moved;
+      if (moved) this.ego.advanceAnimation();
+    } else {
+      this.followRoute();
+    }
 
     for (const actor of this.actors) this.stepActor(actor);
 
@@ -469,6 +484,105 @@ export class Game {
     if (this.isBlocked) return;
 
     this.checkExits();
+  }
+
+  /**
+   * Walk to a point the player tapped, going around scenery on the way.
+   *
+   * A straight line at the target is no use in a room with a bar across the
+   * middle of it, so this plans a route first and then follows it. Holding a
+   * direction key abandons the route, because a deliberate input should always
+   * win over one the player asked for a moment ago.
+   */
+  walkEgoTo(x: number, y: number): boolean {
+    const route = this.findRoute(this.ego, { x: Math.round(x), y: Math.round(y) });
+    if (!route) return false;
+    this.route = route;
+    return true;
+  }
+
+  /** Whether the ego is currently walking a route of its own. */
+  get walking(): boolean {
+    return this.route.length > 0;
+  }
+
+  /** Abandon any route in progress. */
+  stopWalking(): void {
+    this.route = [];
+    this.ego.moving = false;
+  }
+
+  /**
+   * Shortest walkable route between two points, as a list of waypoints.
+   *
+   * Breadth-first over a coarse grid: at two pixels per cell the whole screen
+   * is a few thousand nodes, which is far cheaper than it needs to be for one
+   * search per tap, and the coarseness keeps the route from hugging walls.
+   */
+  findRoute(from: { x: number; y: number }, to: { x: number; y: number }): Point[] | null {
+    const STEP = 2;
+    const half = (y: number) => this.ego.footHalfWidth * this.scaleAt(y);
+    const free = (x: number, y: number) => this.canOccupy(x, y, half(y));
+    if (!free(to.x, to.y)) return null;
+
+    const cell = (x: number, y: number) => Math.round(y / STEP) * CANVAS_W + Math.round(x / STEP);
+    const start = { x: Math.round(from.x), y: Math.round(from.y) };
+    const seen = new Set<number>([cell(start.x, start.y)]);
+    const prev = new Map<number, Point>();
+    const queue: Point[] = [start];
+    const goalCell = cell(to.x, to.y);
+
+    for (let head = 0; head < queue.length; head++) {
+      const p = queue[head];
+      if (cell(p.x, p.y) === goalCell) {
+        const route: Point[] = [to];
+        let at: Point | undefined = p;
+        while (at) {
+          route.push(at);
+          at = prev.get(cell(at.x, at.y));
+        }
+        route.reverse();
+        return simplify(route);
+      }
+      for (const [dx, dy] of NEIGHBOURS) {
+        const nx = p.x + dx * STEP;
+        const ny = p.y + dy * STEP;
+        const k = cell(nx, ny);
+        if (seen.has(k) || !free(nx, ny)) continue;
+        seen.add(k);
+        prev.set(k, p);
+        queue.push({ x: nx, y: ny });
+      }
+    }
+    return null;
+  }
+
+  /** Advance one tick along the planned route. */
+  private followRoute(): void {
+    const next = this.route[0];
+    if (!next) {
+      this.ego.moving = false;
+      return;
+    }
+    const dx = next.x - this.ego.x;
+    const dy = next.y - this.ego.y;
+    const distance = Math.hypot(dx, dy);
+    if (distance <= this.ego.speed) {
+      this.ego.x = next.x;
+      this.ego.y = next.y;
+      this.route.shift();
+      this.ego.moving = this.route.length > 0;
+      if (this.ego.moving) this.ego.advanceAnimation();
+      return;
+    }
+    const speed = this.ego.speed;
+    this.ego.facing =
+      Math.abs(dx) >= Math.abs(dy) ? (dx >= 0 ? 'right' : 'left') : dy >= 0 ? 'front' : 'back';
+    const moved = this.moveActor(this.ego, (dx / distance) * speed, (dy / distance) * speed);
+    this.ego.moving = moved;
+    if (moved) this.ego.advanceAnimation();
+    // Blocked by something that was not there when the route was planned.
+    else this.route = [];
   }
 
   private stepActor(actor: Actor): void {
@@ -583,6 +697,8 @@ export class Game {
       this.applyDepth(composed, before, actor);
     }
 
+    this.drawExitLabel(painter);
+
     return {
       surface: composed,
       status: this.currentRoom?.title ?? '',
@@ -591,6 +707,49 @@ export class Game {
       awaitingDismiss: this.messageQueue.length > 0,
       gameOver: this.gameOver,
     };
+  }
+
+  /**
+   * The way out the player is standing in, if any.
+   *
+   * Includes exits that are suppressed because the player arrived through
+   * them: they still want to know that is the way back.
+   */
+  get exitUnderfoot(): Exit | null {
+    const room = this.currentRoom;
+    if (!room?.exits || room.closeup || room.cutscene) return null;
+    for (const exit of room.exits) {
+      if (this.inExit(exit, this.ego.x, this.ego.y)) return exit;
+    }
+    return null;
+  }
+
+  /**
+   * Name the doorway the player is standing in, just above their head.
+   *
+   * The room art says there is a way out here; this says where it goes. A
+   * locked one is named too, greyed, so the player learns the shape of the map
+   * without having to walk into every door to find out.
+   */
+  private drawExitLabel(painter: Painter): void {
+    const exit = this.exitUnderfoot;
+    if (!exit) return;
+
+    const locked = typeof exit.when?.(this) === 'string';
+    const text = `${locked ? 'x' : (exit.marker ?? '^')} ${exit.label}`;
+    const width = painter.textWidth(text);
+    const x = Math.min(
+      CANVAS_W - width - 3,
+      Math.max(3, Math.round(this.ego.x - width / 2)),
+    );
+    const top = Math.max(1, Math.round(this.ego.y - this.ego.height * this.ego.scale) - 11);
+
+    painter.saved((p) => {
+      p.noDepth().noWalk();
+      p.ink(C.black).box(x - 2, top - 2, width + 4, GLYPH_H + 3);
+      p.relight(x - 2, top - 2, width + 4, GLYPH_H + 3, 0);
+      p.ink(locked ? C.steel : C.goldLit).text(text, x, top);
+    });
   }
 
   /**
@@ -856,6 +1015,38 @@ export class Game {
  * A shallow strip of floor gets no scaling: shrinking a figure across fifteen
  * rows just makes it flicker. A deep floor gets enough to read as distance.
  */
+/** A whole-pixel position on the scene. */
+export interface Point {
+  x: number;
+  y: number;
+}
+
+const NEIGHBOURS = [
+  [1, 0], [-1, 0], [0, 1], [0, -1],
+  [1, 1], [1, -1], [-1, 1], [-1, -1],
+] as const;
+
+/**
+ * Drop waypoints that lie on a straight run, so the walk reads as a few
+ * deliberate strides rather than a stair-stepped scramble.
+ */
+function simplify(route: Point[]): Point[] {
+  const out: Point[] = [];
+  for (let i = 1; i < route.length; i++) {
+    const prev = route[i - 1];
+    const here = route[i];
+    const next = route[i + 1];
+    if (!next) {
+      out.push(here);
+      continue;
+    }
+    const a = Math.sign(here.x - prev.x) * 3 + Math.sign(here.y - prev.y);
+    const b = Math.sign(next.x - here.x) * 3 + Math.sign(next.y - here.y);
+    if (a !== b) out.push(here);
+  }
+  return out;
+}
+
 function derivePerspective(scene: Surface): { horizon: number; near: number } {
   const RUN = 24;
   let horizon = CANVAS_H - 1;

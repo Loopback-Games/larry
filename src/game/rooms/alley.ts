@@ -1,7 +1,16 @@
 import { paint } from '../../engine/scene.js';
 import { C, darker } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
+
+
+/** Where the floor meets the back of the room. */
+const FLOOR = 130;
+
+const DOORS: readonly Doorway[] = [
+  { to: RoomId.OutsideBar, label: 'Street', side: 'right', y: 150, w: 34 },
+];
 
 /**
  * The alley behind Lefty's. A dumpster, a boarded-up dispensary window, and a
@@ -10,59 +19,80 @@ import type { RoomDef } from '../../engine/room.js';
 export const alleyScene = () =>
   paint((p) => {
     p.ink(C.black).box(0, 0, p.width, p.height);
-    p.ink(C.navy).box(0, 0, p.width, 24);
-    p.ink(C.white).stars(0, 0, p.width, 22, 24, 0x51a11e);
 
-    // Two brick walls closing in, with a strip of sky between them.
-    p.ink(C.slate).box(0, 8, 108, 122);
-    p.ink(C.grey).box(212, 8, 108, 122);
-    p.bricks(0, 8, 108, 122, C.black, 7, 18);
-    p.bricks(212, 8, 108, 122, C.maroon, 7, 18);
-    p.ink(C.black).path([108, 8, 128, 46, 128, 130]).path([212, 8, 192, 46, 192, 130]);
-    p.ink(C.slate).fill(160, 60);
-    p.ink(C.black).box(128, 46, 64, 84);
-    p.ink(C.navy).box(136, 54, 48, 30);
-    p.ink(C.white).dots([142, 62, 156, 70, 170, 58, 178, 76]);
+    // ---- a slot of sky, two walls closing in -------------------------------
+    p.ink(C.navyDeep).box(112, 0, 96, 40);
+    p.gradient(112, 0, 96, 40, C.navyDeep, C.navy, 0, 0.6);
+    p.ink(C.silver).stars(114, 2, 92, 34, 16, 0x51a11e);
 
-    // Fire escape on the left wall, coming down from the upstairs window.
-    p.ink(C.slate);
-    for (let i = 0; i < 6; i++) p.line(14, 30 + i * 9, 52, 30 + i * 9);
-    p.line(14, 30, 14, 84).line(52, 30, 52, 84);
-    p.ink(C.grey).box(10, 84, 46, 4);
-    p.ink(C.slate).path([56, 86, 78, 128]);
+    // Left wall: in shadow, receding.
+    p.ink(C.asphalt).solid([0, 0, 112, 26, 112, FLOOR + 8, 0, p.height]);
+    p.bricks(0, 0, 118, FLOOR + 20, C.asphaltDeep, 7, 18);
+    p.sweep(0, 0, 118, p.height, -1, 1);
+
+    // Right wall: catches what light there is from the street end.
+    p.ink(C.concrete).solid([p.width, 0, 208, 26, 208, FLOOR + 8, p.width, p.height]);
+    p.bricks(202, 0, 122, FLOOR + 20, C.maroonDeep, 7, 18);
+    p.sweep(202, 0, 122, p.height, -1, 1);
+    p.relight(280, 0, 40, p.height, 1);
+
+    // Brickwork is laid as a rectangle, so put the sky back over the top
+    // corners the walls do not actually reach.
+    p.ink(C.black).solid([0, -1, 112, -1, 112, 26, 0, 0]);
+    p.ink(C.black).solid([208, -1, p.width, -1, p.width, 0, 208, 26]);
+
+    // The far end of the alley: a blank wall and a lit window above it.
+    p.slab(112, 26, 96, FLOOR - 26, C.asphalt, 1);
+    p.sweep(112, 26, 96, FLOOR - 26, -1, 0);
+    p.window(136, 44, 46, 26, C.gold, C.asphaltDeep);
+    p.glow(159, 57, 26, C.concrete, 0.4, [C.asphalt, C.asphaltDeep, C.concrete]);
+
+    // ---- fire escape, left wall -------------------------------------------
+    p.ink(C.pewter);
+    for (let i = 0; i < 6; i++) p.line(16, 34 + i * 9, 54, 34 + i * 9);
+    p.line(16, 34, 16, 88).line(54, 34, 54, 88);
+    p.slab(12, 88, 48, 4, C.pewter, 1);
+    p.ink(C.asphalt).path([58, 90, 82, FLOOR]);
+    p.ink(C.pewterLit).path([56, 90, 80, FLOOR]);
 
     // The window Larry comes out of, two storeys up.
-    p.ink(C.yellow).box(20, 12, 26, 16);
-    p.ink(C.brown).outline(19, 11, 28, 18);
+    p.slab(20, 14, 28, 20, C.gold, 1);
+    p.ink(C.woodDim).outline(19, 13, 30, 22);
+    p.glow(34, 24, 20, C.concrete, 0.4, [C.asphalt, C.asphaltDeep]);
 
-    // Dumpster.
-    p.ink(C.green).solid([132, 92, 224, 92, 232, 132, 124, 132]);
-    p.ink(darker(C.green)).outline(124, 92, 109, 41);
-    p.ink(C.lime).line(132, 92, 223, 92);
-    p.ink(C.black).line(178, 92, 178, 131);
-    p.ink(darker(C.green)).box(128, 102, 100, 3);
-    p.ink(C.slate).box(126, 132, 10, 8).box(220, 132, 10, 8);
+    // ---- dumpster ----------------------------------------------------------
+    // Sat on the ground with a shadow under it, so it stops floating.
+    p.ink(C.greenDim).solid([134, 88, 222, 88, 230, 130, 126, 130]);
+    p.ink(C.green).line(134, 88, 221, 88);
+    p.ink(C.greenDeep).line(126, 130, 229, 130);
+    p.sweep(126, 88, 106, 42, 0, -1);
+    p.ink(C.greenDeep).box(130, 100, 96, 2).line(178, 88, 178, 129);
+    p.ink(C.greenLit).box(130, 90, 96, 1);
+    p.slab(126, 130, 12, 9, C.asphalt, 1);
+    p.slab(218, 130, 12, 9, C.asphalt, 1);
     // Rubbish spilling over the lip.
-    p.ink(C.brown).dots([140, 90, 152, 89, 196, 90, 208, 88]);
-    p.ink(C.white).box(206, 86, 8, 5);
+    p.ink(C.woodDim).dots([142, 86, 154, 85, 198, 86, 210, 84]);
+    p.slab(204, 82, 10, 5, C.bone, 1);
 
-    // Boarded-up window in the right-hand wall.
-    p.ink(C.black).box(248, 58, 54, 44);
-    p.ink(C.brown);
-    p.box(244, 62, 62, 7).box(244, 74, 62, 7).box(244, 86, 62, 7);
-    p.ink(darker(C.brown)).line(244, 62, 305, 62).line(244, 74, 305, 74).line(244, 86, 305, 86);
-    p.ink(C.slate).dots([250, 65, 300, 65, 250, 77, 300, 77, 250, 89, 300, 89]);
+    // ---- boarded-up window, right wall -------------------------------------
+    p.ink(C.ink).box(250, 56, 52, 46);
+    for (const by of [60, 72, 84]) {
+      p.slab(246, by, 62, 8, C.woodDim, 1);
+      p.ink(C.woodDeep).dots([252, by + 3, 302, by + 3]);
+    }
 
-    // Ground: wet, littered, unloved.
-    p.ink(C.slate).box(0, 130, p.width, p.height - 130);
-    p.ink(C.black).line(0, 130, p.width - 1, 130);
-    p.ink(darker(C.slate));
-    for (let x = 0; x < p.width; x += 26) p.path([x, 134, x + 12, 142, x + 4, 152]);
-    p.ink(C.navy).solid([60, 150, 100, 150, 108, 162, 52, 162]);
-    p.ink(C.white).dots([70, 154, 88, 157]);
+    // ---- ground ------------------------------------------------------------
+    p.floorPlane(FLOOR, p.height, C.asphalt, 208, 7);
+    // A puddle reflecting the lit window at the end.
+    p.ink(C.navyDeep).solid([62, 148, 104, 148, 112, 162, 54, 162]);
+    p.ink(C.navy).line(62, 148, 103, 148);
+    p.ink(C.blueDim).dots([72, 154, 86, 152, 96, 157]);
+    p.contact(126, 128, 106, 8, -2);
 
+    doorways(p, DOORS);
     p.depthRamp(130, p.height, 5, 14);
-    p.blockRect(0, 0, p.width, 130);
+    doorways(p, DOORS);
+    walls(p, FLOOR, DOORS);
     p.blockRect(118, 126, 120, 14);
   });
 
@@ -71,10 +101,13 @@ export const alley: RoomDef = {
   title: 'The Alley',
   scene: alleyScene,
 
+  horizon: 130,
+  scaleAtHorizon: 0.68,
+
   entries: {
-    default: { x: 40, y: 150, facing: 'front' },
-    [RoomId.HookerRoom]: { x: 74, y: 146, facing: 'front' },
-    [RoomId.OutsideBar]: { x: 296, y: 150, facing: 'left' },
+    default: { x: 56, y: 152, facing: 'right' },
+    [RoomId.HookerRoom]: { x: 82, y: 148, facing: 'front' },
+    [RoomId.OutsideBar]: { x: 286, y: 152, facing: 'left' },
   },
 
   describe:
@@ -109,7 +142,7 @@ export const alley: RoomDef = {
     { noun: 'puddle', look: 'You choose not to think about the puddle.' },
   ],
 
-  exits: [{ x: 300, y: 132, w: 20, h: 34, to: RoomId.OutsideBar }],
+  exits: exitsOf(DOORS),
 
   onCommand(g, cmd) {
     if (

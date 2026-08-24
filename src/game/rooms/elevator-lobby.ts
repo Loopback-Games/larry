@@ -1,7 +1,27 @@
 import { paint } from '../../engine/scene.js';
 import { C, darker } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { RoomId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
+
+/** Where the floor meets the back of the room. */
+const FLOOR = 124;
+
+const DOORS: readonly Doorway[] = [
+  { to: RoomId.InsideCasino, label: 'Casino floor', side: 'front', x: 160, w: 46 },
+  {
+    to: RoomId.Elevator,
+    label: 'Lift',
+    side: 'back',
+    x: 160,
+    y: FLOOR,
+    w: 54,
+    h: 52,
+    kind: 'double',
+    colour: C.gold,
+    through: C.charcoal,
+  },
+];
 
 /** A short marble lobby with the lift at the end of it. */
 export const elevatorLobbyScene = () =>
@@ -50,7 +70,8 @@ export const elevatorLobbyScene = () =>
     p.ink(C.yellow).line(0, 124, p.width - 1, 124);
 
     p.depthRamp(124, p.height, 6, 14);
-    p.blockRect(0, 0, p.width, 124);
+    doorways(p, DOORS);
+    walls(p, FLOOR, DOORS);
     p.blockRect(244, 118, 34, 10);
   });
 
@@ -59,10 +80,13 @@ export const elevatorLobby: RoomDef = {
   title: 'The Lift Lobby',
   scene: elevatorLobbyScene,
 
+  horizon: 124,
+  scaleAtHorizon: 0.64,
+
   entries: {
-    default: { x: 160, y: 150, facing: 'back' },
-    [RoomId.InsideCasino]: { x: 160, y: 156, facing: 'back' },
-    [RoomId.Elevator]: { x: 160, y: 132, facing: 'front' },
+    default: { x: 160, y: 148, facing: 'back' },
+    [RoomId.InsideCasino]: { x: 160, y: 152, facing: 'back' },
+    [RoomId.Elevator]: { x: 160, y: 134, facing: 'front' },
   },
 
   describe:
@@ -77,10 +101,7 @@ export const elevatorLobby: RoomDef = {
     { noun: 'ashtray', synonyms: ['stand'], look: 'A chrome ashtray on a stand, full to the brim.' },
   ],
 
-  exits: [
-    { x: 128, y: 162, w: 64, h: 6, to: RoomId.InsideCasino },
-    { x: 104, y: 124, w: 112, h: 8, to: RoomId.Elevator },
-  ],
+  exits: exitsOf(DOORS),
 
   onCommand(g, cmd) {
     if (cmd.isAny('push', 'button') || cmd.isAny('use', 'button') || cmd.isAny('open', 'lift')) {
