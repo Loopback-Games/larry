@@ -21,6 +21,14 @@ import { glyphPixel, GLYPH_W, GLYPH_H } from './font.js';
  * scene to a few dozen readable lines, makes the depth and walk planes part of
  * the same description as the picture, and costs almost nothing to ship.
  */
+/** 4x4 ordered dither matrix. */
+const BAYER: readonly (readonly number[])[] = [
+  [0, 8, 2, 10],
+  [12, 4, 14, 6],
+  [3, 11, 1, 9],
+  [15, 7, 13, 5],
+];
+
 export class Painter {
   readonly surface: Surface;
   private pen: Pen = { colour: 0 };
@@ -192,17 +200,78 @@ export class Painter {
     });
   }
 
-  /** Vertical gradient approximated by ordered dithering between two inks. */
-  gradient(x: number, y: number, w: number, h: number, top: number, bottom: number): this {
+  /**
+   * Mix two inks across a rectangle using an ordered (Bayer) dither.
+   *
+   * With sixteen colours to work with, dithering is how the palette gets more
+   * apparent shades than it actually has. `mix` is the proportion of `b`.
+   */
+  blend(x: number, y: number, w: number, h: number, a: number, b: number, mix: number): this {
     return this.saved((p) => {
-      p.ink(top).box(x, y, w, h);
-      p.ink(bottom);
-      for (let row = 0; row < h; row++) {
-        // Probability of a bottom-colour pixel rises down the band.
-        const density = row / Math.max(1, h - 1);
-        const period = Math.max(1, Math.round(1 / Math.max(0.02, density)));
-        for (let col = (row % 2) * Math.ceil(period / 2); col < w; col += period) {
-          p.dot(x + col, y + row);
+      const clamped = Math.min(1, Math.max(0, mix));
+      for (let py = 0; py < h; py++) {
+        for (let px = 0; px < w; px++) {
+          const threshold = (BAYER[py & 3][px & 3] + 0.5) / 16;
+          p.ink(clamped > threshold ? b : a).dot(x + px, y + py);
+        }
+      }
+    });
+  }
+
+  /**
+   * Vertical gradient between two inks, dithered so the bands do not step.
+   * `from` and `to` are the mix at the top and bottom of the band.
+   */
+  gradient(
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    a: number,
+    b: number,
+    from = 0,
+    to = 1,
+  ): this {
+    return this.saved((p) => {
+      for (let py = 0; py < h; py++) {
+        const t = h <= 1 ? to : from + ((to - from) * py) / (h - 1);
+        for (let px = 0; px < w; px++) {
+          const threshold = (BAYER[py & 3][px & 3] + 0.5) / 16;
+          p.ink(t > threshold ? b : a).dot(x + px, y + py);
+        }
+      }
+    });
+  }
+
+  /**
+   * A soft halo, for neon and lamps. Dithered rings that thin out with
+   * distance, which is as close to a bloom as sixteen colours allow.
+   *
+   * Only pixels currently holding `over` are lit, so the glow spreads into the
+   * night behind a sign without speckling across the sign, the brickwork or
+   * the windows in front of it.
+   */
+  glow(
+    cx: number,
+    cy: number,
+    radius: number,
+    colour: number,
+    strength = 0.7,
+    over: number | readonly number[] = 0,
+  ): this {
+    const targets = typeof over === 'number' ? [over] : over;
+    return this.saved((p) => {
+      const r2 = radius * radius;
+      for (let py = -radius; py <= radius; py++) {
+        for (let px = -radius; px <= radius; px++) {
+          const d2 = px * px + py * py;
+          if (d2 > r2) continue;
+          const x = cx + px;
+          const y = cy + py;
+          if (!targets.includes(this.surface.colourAt(x, y))) continue;
+          const falloff = 1 - Math.sqrt(d2) / radius;
+          const threshold = (BAYER[y & 3][x & 3] + 0.5) / 16;
+          if (falloff * strength > threshold) p.ink(colour).dot(x, y);
         }
       }
     });

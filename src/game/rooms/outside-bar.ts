@@ -13,9 +13,13 @@ import type { RoomDef } from '../../engine/room.js';
 export const outsideBarScene = () =>
   paint((p) => {
     // ---- night sky --------------------------------------------------------
+    // Not flat black: the city throws enough light to lift the horizon.
     p.ink(C.black).box(0, 0, p.width, p.height);
-    p.ink(C.white).stars(0, 0, p.width, 56, 90, 0x1e5127);
+    p.gradient(0, 30, p.width, 46, C.black, C.navy, 0, 0.85);
+    p.ink(C.white).stars(0, 0, p.width, 40, 70, 0x1e5127);
+    p.ink(C.slate).stars(0, 0, p.width, 56, 40, 0x51e712);
     p.ink(C.slate).dots([36, 14, 37, 13, 38, 14, 37, 15, 36, 16, 38, 16]);
+    p.ink(C.grey).dot(37, 14);
     p.skyline(74, 20, 52, C.navy, C.yellow, 0xbadc0de);
 
     // ---- the bar ----------------------------------------------------------
@@ -25,7 +29,9 @@ export const outsideBarScene = () =>
     p.bricks(48, 92, 220, 30, C.maroon, 6, 20);
     p.ink(C.slate).line(48, 92, 267, 92);
 
-    // Neon sign over the door: a hot pink tube in a dark housing.
+    // Neon sign over the door: a hot pink tube in a dark housing, throwing a
+    // little of its own light onto the brickwork around it.
+    p.glow(160, 59, 30, C.maroon, 0.45);
     p.ink(C.black).box(112, 48, 96, 22);
     p.ink(C.maroon).outline(112, 48, 96, 22);
     p.ink(C.pink).outline(117, 52, 86, 14);
@@ -56,7 +62,9 @@ export const outsideBarScene = () =>
     p.ink(C.slate).line(64, 100, 106, 110).line(214, 110, 256, 100);
 
     // ---- street -----------------------------------------------------------
+    // The pavement lightens towards the kerb, away from the building's shadow.
     p.ink(C.slate).box(0, 122, p.width, 18);
+    p.gradient(0, 122, p.width, 10, C.slate, C.black, 0.7, 0);
     p.ink(C.grey).line(0, 122, p.width - 1, 122);
     p.ink(C.black).line(0, 139, p.width - 1, 139);
     p.ink(C.black).box(0, 140, p.width, p.height - 140);

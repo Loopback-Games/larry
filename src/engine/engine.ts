@@ -1,5 +1,6 @@
 import { Surface } from './raster.js';
 import { Painter } from './scene.js';
+import { darker } from './palette.js';
 import { Actor } from './actor.js';
 import { Command, EMPTY_COMMAND, parse } from './parser.js';
 import { Vocabulary } from './vocabulary.js';
@@ -569,8 +570,14 @@ export class Game {
       .filter((a) => a.visible)
       .sort((a, b) => a.y - b.y);
 
+    // Shadows go down first, under everyone, so a figure standing in front of
+    // another does not have its shadow painted over the one behind.
     for (const actor of drawable) {
       actor.scale = actor.fixedScale ? 1 : this.scaleAt(actor.y);
+      if (actor.castsShadow) this.drawShadow(painter, composed, actor);
+    }
+
+    for (const actor of drawable) {
       const before = composed.colour.slice();
       actor.draw(painter);
       this.applyDepth(composed, before, actor);
@@ -584,6 +591,35 @@ export class Game {
       awaitingDismiss: this.messageQueue.length > 0,
       gameOver: this.gameOver,
     };
+  }
+
+  /**
+   * A soft contact shadow under an actor's feet.
+   *
+   * Without one a figure reads as floating slightly above the floor. The
+   * shadow is a dithered ellipse in a darker shade of whatever it falls on, so
+   * it works on any surface without needing per-room colours.
+   */
+  private drawShadow(painter: Painter, composed: Surface, actor: Actor): void {
+    const rx = Math.max(3, Math.round((actor.width * actor.scale) / 2.6));
+    const ry = Math.max(1, Math.round(rx / 3));
+    const cy = Math.round(actor.y);
+    const cx = Math.round(actor.x);
+
+    for (let dy = -ry; dy <= ry; dy++) {
+      for (let dx = -rx; dx <= rx; dx++) {
+        const n = (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry);
+        if (n > 1) continue;
+        const x = cx + dx;
+        const y = cy + dy;
+        if (!composed.inside(x, y)) continue;
+        // Dither the edge so the ellipse fades rather than stopping dead.
+        if (n > 0.45 && ((x + y) & 1) === 0) continue;
+        const i = composed.index(x, y);
+        composed.colour[i] = darker(composed.colour[i]);
+      }
+    }
+    void painter;
   }
 
   /**

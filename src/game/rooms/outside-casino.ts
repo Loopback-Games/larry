@@ -11,6 +11,7 @@ import type { RoomDef } from '../../engine/room.js';
 export const outsideCasinoScene = () =>
   paint((p) => {
     p.ink(C.black).box(0, 0, p.width, p.height);
+    p.gradient(0, 0, p.width, 24, C.black, C.navy, 0, 0.6);
     p.ink(C.white).stars(0, 0, p.width, 20, 22, 0xc0ffee);
 
     // The tower, lit from below, going up out of frame.
@@ -24,6 +25,7 @@ export const outsideCasinoScene = () =>
       for (let x = 64; x < 260; x += 14) if ((x + y) % 5 === 0) p.box(x, y, 10, 8);
 
     // A colossal sign, because subtlety costs money.
+    p.glow(161, 41, 58, C.maroon, 0.75);
     p.ink(C.maroon).box(76, 24, 170, 34);
     p.ink(C.yellow).outline(76, 24, 170, 34);
     p.ink(C.red).outline(78, 26, 166, 30);

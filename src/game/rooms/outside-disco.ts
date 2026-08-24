@@ -11,13 +11,15 @@ import type { RoomDef } from '../../engine/room.js';
 export const outsideDiscoScene = () =>
   paint((p) => {
     p.ink(C.black).box(0, 0, p.width, p.height);
-    p.ink(C.white).stars(0, 0, p.width, 36, 40, 0x44f00d);
+    p.ink(C.white).stars(0, 0, p.width, 30, 40, 0x44f00d);
 
     // The club front: black glass and a great deal of neon.
     p.ink(darker(C.slate)).box(40, 24, 250, 104);
     p.ink(C.black).box(48, 34, 234, 88);
 
-    // Sign: three stacked neon bars in club colours.
+    // Sign: three stacked neon bars in club colours, each with its own bloom.
+    p.glow(164, 42, 46, C.purple, 0.8);
+    p.glow(164, 56, 34, C.navy, 0.7);
     p.ink(C.pink).box(74, 38, 180, 8);
     p.ink(C.cyan).box(88, 50, 152, 6);
     p.ink(C.yellow).box(104, 60, 120, 5);

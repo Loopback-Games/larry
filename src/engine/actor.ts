@@ -35,6 +35,8 @@ export interface ActorOptions {
   readonly footHeight?: number;
   /** Actors that do not shrink with distance, such as vehicles and props. */
   readonly fixedScale?: boolean;
+  /** Props already drawn with their own shading opt out of the contact shadow. */
+  readonly castsShadow?: boolean;
 }
 
 /**
@@ -60,6 +62,7 @@ export class Actor {
   readonly footHalfWidth: number;
   readonly footHeight: number;
   readonly fixedScale: boolean;
+  readonly castsShadow: boolean;
   /** Perspective scale for this frame, set by the engine before drawing. */
   scale = 1;
 
@@ -78,6 +81,7 @@ export class Actor {
     this.footHalfWidth = options.footHalfWidth ?? 4;
     this.footHeight = options.footHeight ?? 3;
     this.fixedScale = options.fixedScale ?? options.render !== undefined;
+    this.castsShadow = options.castsShadow ?? options.style !== undefined;
   }
 
   /**

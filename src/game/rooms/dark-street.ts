@@ -14,12 +14,28 @@ export const darkStreetScene = () =>
     p.skyline(96, 30, 66, C.black, C.navy, 0x77aa11);
 
     // A single streetlight failing to light anything.
+    p.glow(81, 33, 20, C.brown, 0.85);
     p.ink(C.slate).box(58, 40, 5, 92);
     p.ink(C.grey).path([58, 40, 62, 32, 82, 30]);
     p.ink(C.yellow).solid([76, 30, 92, 30, 88, 40, 80, 40]);
-    // A weak cone of light that reaches the pavement and stops.
-    p.ink(darker(C.yellow)).solid([66, 40, 96, 40, 118, 130, 44, 130]);
-    p.ink(C.brown).solid([72, 40, 90, 40, 104, 130, 58, 130]);
+    // A weak cone of light that reaches the pavement and stops. Dithered, so
+    // it reads as light falling rather than a painted triangle.
+    p.saved((q) => {
+      for (let y = 40; y < 132; y++) {
+        const t = (y - 40) / 92;
+        const halfWidth = 12 + t * 26;
+        const density = 0.55 * (1 - t * 0.8);
+        q.blend(
+          Math.round(81 - halfWidth),
+          y,
+          Math.round(halfWidth * 2),
+          1,
+          C.black,
+          C.brown,
+          density,
+        );
+      }
+    });
 
     // Shuttered frontages that have not opened in years.
     for (const sx of [140, 210, 276]) {
