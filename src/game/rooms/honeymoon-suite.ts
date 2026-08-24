@@ -44,7 +44,8 @@ export const honeymoonSuiteScene = () =>
     p.ink(C.maroon).solid([104, 76, 216, 76, 216, 96, 104, 96]);
     p.ink(C.red).solid([160, 76, 118, 76, 124, 58, 148, 58, 160, 70, 172, 58, 196, 58, 202, 76]);
     p.ink(C.pink).path([124, 60, 146, 60]).path([174, 60, 196, 60]);
-    p.ink(C.red).solid([84, 96, 236, 96, 248, 136, 72, 136]);
+    // Mattress top at about a third of standing height, not chest level.
+    p.ink(C.red).solid([84, 110, 236, 110, 248, 136, 72, 136]);
     p.ink(darker(C.red)).line(72, 136, 247, 136);
     p.ink(C.white).solid([106, 90, 152, 90, 154, 102, 104, 102]);
     p.ink(C.white).solid([170, 90, 216, 90, 218, 102, 168, 102]);

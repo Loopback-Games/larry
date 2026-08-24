@@ -1,12 +1,24 @@
 import { paint } from '../../engine/scene.js';
 import { C, shade } from '../../engine/palette.js';
 import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
+import { propHeight } from '../scale.js';
 import { Actor } from '../../engine/actor.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
 
 /** Where the back wall meets the floorboards. */
 const FLOOR = 120;
+/** Perspective, declared here so the scenery can be sized off the figure. */
+const AT_HORIZON = 0.74;
+
+/** Where the counter meets the floor, and how tall that makes it. */
+const COUNTER_BASE = 126;
+const COUNTER_H = propHeight('counterTop', COUNTER_BASE, FLOOR, AT_HORIZON);
+const COUNTER_TOP = COUNTER_BASE - COUNTER_H;
+
+/** The stools stand further forward, so they are drawn larger. */
+const STOOL_BASE = 152;
+const STOOL_H = propHeight('stoolSeat', STOOL_BASE, FLOOR, AT_HORIZON);
 
 const DOORS: readonly Doorway[] = [
   {
@@ -53,12 +65,18 @@ export const insideBarScene = () =>
     }
 
     // ---- back bar ---------------------------------------------------------
-    p.slab(70, 38, 180, 48, C.woodDim, 1);
-    p.ink(C.woodDeep).box(72, 40, 176, 44);
-    p.sweep(72, 40, 176, 44, -1, 0);
+    // The bottle shelf sits on a base cabinet that carries down to the floor,
+    // so the two do not float apart with a band of bare wall between them.
+    p.slab(66, 36, 188, 52, C.woodDim, 1);
+    p.ink(C.woodDeep).box(70, 40, 180, 44);
+    p.sweep(70, 40, 180, 44, -1, 0);
     for (const shelfY of [55, 70]) {
-      p.slab(72, shelfY, 176, 3, C.brown, 1);
+      p.slab(70, shelfY, 180, 3, C.brown, 1);
     }
+    p.slab(70, 88, 180, COUNTER_TOP - 86, C.woodDim, 1);
+    p.sweep(70, 88, 180, COUNTER_TOP - 86, 0, -1);
+    p.ink(C.woodDeep);
+    for (let x = 88; x < 250; x += 26) p.line(x, 90, x, COUNTER_TOP - 1);
 
     // Bottles: warm spirits on top, green and clear below, all glinting on the
     // same side because the light is over the counter.
@@ -86,52 +104,69 @@ export const insideBarScene = () =>
     p.ink(C.bluePale).line(38, 51, 60, 51);
 
     // ---- the counter ------------------------------------------------------
+    // Waist height on the man standing at it, not chest height on a giant.
     // Lit along its top edge, which is what makes it read as a solid mass in
     // front of the bartender rather than a brown stripe.
-    p.slab(30, 88, 260, 10, C.brownLit, 1);
-    p.ink(C.tan).box(30, 88, 260, 2);
-    p.slab(32, 98, 256, 22, C.woodDim, 1);
-    p.sweep(32, 98, 256, 22, 0, -1);
+    const lip = Math.max(3, Math.round(COUNTER_H * 0.28));
+    p.slab(30, COUNTER_TOP, 260, lip, C.brownLit, 1);
+    p.ink(C.tan).box(30, COUNTER_TOP, 260, 2);
+    p.slab(32, COUNTER_TOP + lip, 256, COUNTER_H - lip, C.woodDim, 1);
+    p.sweep(32, COUNTER_TOP + lip, 256, COUNTER_H - lip, 0, -1);
     p.ink(C.woodDeep);
-    for (let x = 44; x < 288; x += 18) p.line(x, 100, x, 118);
-    p.contact(30, 98, 260, 8, -2);
+    for (let x = 44; x < 288; x += 18) p.line(x, COUNTER_TOP + lip + 1, x, COUNTER_BASE - 2);
+    p.contact(30, COUNTER_TOP + lip, 260, 6, -2);
 
-    // The counter sits in front of anyone standing behind it.
-    p.saved((q) => q.noInk().noWalk().depth(11).box(30, 88, 260, 32));
-
-    // Beer taps and a bowl of something salted.
-    for (const tx of [120, 128, 136]) p.slab(tx, 80, 4, 9, C.pewter, 1);
-    p.slab(115, 77, 28, 4, C.silver, 1);
-    p.ink(C.ivory).solid([196, 88, 214, 88, 211, 82, 199, 82]);
-    p.ink(C.khaki).line(199, 83, 210, 83);
+    // Beer taps and a bowl of something salted, standing on the counter.
+    for (const tx of [120, 128, 136]) p.slab(tx, COUNTER_TOP - 9, 4, 9, C.pewter, 1);
+    p.slab(115, COUNTER_TOP - 12, 28, 4, C.silver, 1);
+    p.ink(C.ivory).solid([
+      196, COUNTER_TOP,
+      214, COUNTER_TOP,
+      211, COUNTER_TOP - 6,
+      199, COUNTER_TOP - 6,
+    ]);
+    p.ink(C.khaki).line(199, COUNTER_TOP - 5, 210, COUNTER_TOP - 5);
 
     // ---- floor ------------------------------------------------------------
     p.floorPlane(FLOOR, p.height, C.brown, 160, 11);
 
-    // Stools go on after the floor, or the floor paints over them.
+    // Stools go on after the floor, or the floor paints over them. Seat height
+    // is taken from the figure that would sit on it.
+    const seatTop = STOOL_BASE - STOOL_H;
+    const cushion = Math.max(2, Math.round(STOOL_H * 0.3));
     for (const sx of [58, 100, 142, 184, 226, 266]) {
-      p.ink(C.crimson).solid([sx - 11, 124, sx + 11, 124, sx + 9, 130, sx - 9, 130]);
-      p.ink(C.redLit).line(sx - 11, 124, sx + 10, 124);
-      p.ink(C.maroonDeep).line(sx - 9, 130, sx + 8, 130);
-      p.slab(sx - 2, 130, 5, 20, C.pewter, 1);
-      p.ink(C.asphaltDeep).box(sx - 8, 149, 16, 3);
+      p.ink(C.crimson).solid([
+        sx - 10, seatTop,
+        sx + 10, seatTop,
+        sx + 8, seatTop + cushion,
+        sx - 8, seatTop + cushion,
+      ]);
+      p.ink(C.redLit).line(sx - 10, seatTop, sx + 9, seatTop);
+      p.ink(C.maroonDeep).line(sx - 8, seatTop + cushion, sx + 7, seatTop + cushion);
+      p.slab(sx - 2, seatTop + cushion, 4, STOOL_BASE - seatTop - cushion, C.pewter, 1);
+      p.ink(C.asphaltDeep).box(sx - 6, STOOL_BASE - 2, 12, 2);
     }
 
     p.vignette(-1);
     p.depthRamp(FLOOR, p.height, 6, 14);
+    // The counter sits in front of the bartender and behind every customer.
+    p.standing(30, COUNTER_TOP, 260, COUNTER_BASE - COUNTER_TOP);
     doorways(p, DOORS);
-    walls(p, FLOOR, DOORS);
     // The bar itself is solid; you cannot walk through it to the bottles.
-    p.blockRect(30, 88, 260, 30);
-    for (const sx of [58, 100, 142, 184, 226, 266]) p.blockRect(sx - 11, 122, 22, 10);
+    p.blockRect(30, COUNTER_TOP, 260, COUNTER_BASE - COUNTER_TOP);
+    for (const sx of [58, 100, 142, 184, 226, 266]) {
+      p.blockRect(sx - 10, seatTop, 20, cushion + 2);
+    }
+    // Last, so the counter cannot seal the passage it stands beside.
+    walls(p, FLOOR, DOORS);
   });
 
 const BARTENDER = new Actor({
   id: 'bartender',
-  x: 214,
-  y: 104,
+  x: 246,
+  y: 118,
   facing: 'front',
-  depth: 6,
+  depth: 3,
   style: {
     hair: C.black,
     hairStyle: 'short',
@@ -150,7 +185,7 @@ export const insideBar: RoomDef = {
   scene: insideBarScene,
 
   horizon: FLOOR,
-  scaleAtHorizon: 0.6,
+  scaleAtHorizon: AT_HORIZON,
 
   entries: {
     default: { x: 168, y: 150, facing: 'back' },

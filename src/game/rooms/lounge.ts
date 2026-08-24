@@ -1,5 +1,6 @@
 import { paint } from '../../engine/scene.js';
 import { C, darker } from '../../engine/palette.js';
+import { propHeight, personWidthAt } from '../scale.js';
 import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { Actor } from '../../engine/actor.js';
 import { RoomId } from '../ids.js';
@@ -7,6 +8,8 @@ import type { RoomDef } from '../../engine/room.js';
 
 /** Where the floor meets the back of the room. */
 const FLOOR = 114;
+/** Perspective, declared here so the furniture can be sized off the figure. */
+const AT_HORIZON = 0.62;
 
 const DOORS: readonly Doorway[] = [
   { to: RoomId.InsideCasino, label: 'Casino floor', side: 'front', x: 160, w: 48 },
@@ -60,12 +63,21 @@ export const loungeScene = () =>
 
     // Tables in the dark, each with a candle.
     p.ink(C.black).box(0, 114, p.width, p.height - 114);
-    for (const [tx, ty, r] of [
-      [40, 128, 16], [130, 132, 18], [232, 130, 17], [86, 152, 20], [196, 154, 21], [286, 150, 18],
+    for (const [tx, base] of [
+      [40, 138], [130, 143], [232, 141], [86, 164], [196, 166], [286, 162],
     ] as const) {
-      p.ink(darker(C.slate)).solid([tx - r, ty, tx + r, ty, tx + r - 3, ty + 7, tx - r + 3, ty + 7]);
+      const h = propHeight('tableTop', base, FLOOR, AT_HORIZON);
+      const r = Math.round(personWidthAt(base, FLOOR, AT_HORIZON) * 1.1);
+      const ty = base - h;
+      const apron = Math.max(2, Math.round(h * 0.4));
+      p.ink(darker(C.slate)).solid([
+        tx - r, ty,
+        tx + r, ty,
+        tx + r - 3, ty + apron,
+        tx - r + 3, ty + apron,
+      ]);
       p.ink(C.slate).line(tx - r, ty, tx + r - 1, ty);
-      p.ink(C.black).box(tx - 2, ty + 7, 4, 10);
+      p.ink(C.black).box(tx - 2, ty + apron, 4, base - ty - apron);
       p.ink(C.red).box(tx - 3, ty - 7, 6, 7);
       p.ink(C.yellow).dot(tx, ty - 9).dot(tx, ty - 10);
     }
@@ -118,8 +130,8 @@ export const lounge: RoomDef = {
   title: 'The Lounge',
   scene: loungeScene,
 
-  horizon: 114,
-  scaleAtHorizon: 0.62,
+  horizon: FLOOR,
+  scaleAtHorizon: AT_HORIZON,
 
   entries: { default: { x: 160, y: 150, facing: 'back' } },
 

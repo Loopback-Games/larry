@@ -71,6 +71,22 @@ npm run lint:workflows   # actionlint + zizmor
   than `goTo` when you want to know a room really works.
 - `test/walkthrough` — the game is completable and still scores 222.
 
+## Sizing things
+
+Scenes are drawn in perspective, so "how tall is a table" depends on where the
+table stands. Size props off the figure that would stand beside them, using
+`propHeight` from `src/game/scale.ts`, rather than by eye. Doing it by eye gave
+the bar a counter taller than Larry and stools he could not have climbed.
+
+Scenery that stands forward of the wall needs `p.standing(...)` after
+`depthRamp`, which reads its depth band from the floor beneath it. Choosing the
+band by hand is how the counter came to sit in front of every customer as well
+as the bartender, painting out the head of anyone who walked up to the bar.
+
+Call `walls(p, FLOOR, DOORS)` last, after every other `blockRect`. Forward
+scenery reaches below the floor line, and marking it solid afterwards can seal
+a doorway it merely stands beside.
+
 ## Artwork
 
 The palette is a set of hue ramps rather than a flat table, so every colour has

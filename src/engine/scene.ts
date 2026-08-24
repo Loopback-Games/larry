@@ -575,6 +575,23 @@ export class Painter {
   }
 
   /**
+   * Mark standing scenery so actors sort against it correctly.
+   *
+   * The band is read from the floor directly under the object rather than
+   * chosen by hand, which is the only way it stays consistent with
+   * {@link depthRamp}. Call it after the ramp.
+   *
+   * Picking the number by eye is how the bar counter came to be band 11 while
+   * the floor in front of it ran 6 to 14: anyone who walked within an arm's
+   * length of the bar had their head painted out by it.
+   */
+  standing(x: number, y: number, w: number, h: number): this {
+    const base = Math.min(this.height - 1, Math.round(y + h));
+    const band = this.surface.depthAt(Math.round(x + w / 2), base);
+    return this.saved((p) => p.noInk().noWalk().depth(band).box(x, y, w, h));
+  }
+
+  /**
    * Give everything below `y` a depth band that rises towards the bottom of the
    * screen, so actors standing nearer the camera correctly overlap those behind.
    */

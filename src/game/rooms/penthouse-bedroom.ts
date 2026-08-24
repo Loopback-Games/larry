@@ -30,9 +30,10 @@ export const penthouseBedroomScene = () =>
     // A very large bed.
     p.ink(C.slate).box(90, 40, 108, 40);
     p.ink(C.grey).outline(90, 40, 108, 40);
-    p.ink(C.purple).solid([76, 80, 212, 80, 224, 122, 64, 122]);
+    // Mattress top at about a third of standing height, not chest level.
+    p.ink(C.purple).solid([76, 98, 212, 98, 224, 122, 64, 122]);
     p.ink(darker(C.purple)).line(64, 122, 223, 122);
-    p.ink(C.white).solid([98, 74, 138, 74, 140, 86, 96, 86]);
+    p.ink(C.white).solid([98, 92, 138, 92, 140, 102, 96, 102]);
     p.ink(C.white).solid([152, 74, 192, 74, 194, 86, 150, 86]);
 
     // Wardrobe, doors open, with something on the floor of it.

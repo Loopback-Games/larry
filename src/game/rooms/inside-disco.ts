@@ -1,5 +1,6 @@
 import { paint } from '../../engine/scene.js';
 import { C, shade } from '../../engine/palette.js';
+import { propHeight, personWidthAt } from '../scale.js';
 import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { Actor } from '../../engine/actor.js';
 import { rng, randInt } from '../../engine/rng.js';
@@ -10,6 +11,8 @@ import type { Game } from '../../engine/engine.js';
 
 /** Where the floor meets the back of the room. */
 const FLOOR = 92;
+/** Perspective, declared here so the furniture can be sized off the figure. */
+const AT_HORIZON = 0.56;
 
 const DOORS: readonly Doorway[] = [
   { to: RoomId.OutsideDisco, label: 'Street', side: 'front', x: 160, w: 46 },
@@ -102,23 +105,36 @@ export const insideDiscoScene = () =>
     p.contact(0, 142, p.width, 8, -2);
 
     // ---- booth tables either side of the floor ------------------------------
-    for (const [tx, ty] of [[42, 132], [274, 134]] as const) {
-      p.ink(C.maroonDeep).solid([tx - 26, ty, tx + 26, ty, tx + 21, ty + 11, tx - 21, ty + 11]);
-      p.ink(C.maroon).line(tx - 26, ty, tx + 25, ty);
-      p.ink(C.ink).box(tx - 3, ty + 11, 7, 14);
-      p.ink(C.maroonDeep).box(tx - 15, ty + 25, 30, 4);
-      p.ink(C.gold).box(tx - 4, ty - 7, 3, 7);
-      p.ink(C.yellowPale).dot(tx - 3, ty - 9);
-      p.glow(tx - 3, ty - 9, 14, C.violetDim, 0.4, [C.ink, C.violetDeep]);
-      p.contact(tx - 26, ty + 27, 52, 5, -2);
+    // Sized off the person who would sit at them rather than by eye: a table
+    // top comes to a little under half the height of someone standing beside
+    // it, and seats two.
+    for (const [tx, base] of [[42, 148], [274, 152]] as const) {
+      const h = propHeight('tableTop', base, FLOOR, AT_HORIZON);
+      const half = Math.round(personWidthAt(base, FLOOR, AT_HORIZON) * 1.2);
+      const top = base - h;
+      const apron = Math.max(2, Math.round(h * 0.3));
+      p.ink(C.maroonDeep).solid([
+        tx - half, top,
+        tx + half, top,
+        tx + half - 3, top + apron,
+        tx - half + 3, top + apron,
+      ]);
+      p.ink(C.maroon).line(tx - half, top, tx + half - 1, top);
+      p.ink(C.ink).box(tx - 2, top + apron, 5, base - top - apron);
+      p.ink(C.maroonDeep).box(tx - Math.round(half * 0.5), base - 2, half, 3);
+      p.ink(C.gold).box(tx - 2, top - 7, 3, 7);
+      p.ink(C.yellowPale).dot(tx - 1, top - 9);
+      p.glow(tx - 1, top - 9, 14, C.violetDim, 0.4, [C.ink, C.violetDeep]);
+      p.contact(tx - half, base, half * 2, 4, -2);
     }
 
     doorways(p, DOORS);
     p.depthRamp(92, p.height, 4, 14);
     doorways(p, DOORS);
     walls(p, FLOOR, DOORS);
-    p.blockRect(18, 126, 50, 22);
-    p.blockRect(250, 128, 50, 22);
+    // Collision follows the tables' new footprint.
+    p.blockRect(24, 134, 38, 16);
+    p.blockRect(256, 138, 38, 16);
   });
 
 const FAWN = new Actor({
@@ -186,8 +202,8 @@ export const insideDisco: RoomDef = {
   title: 'The Disco',
   scene: insideDiscoScene,
 
-  horizon: 92,
-  scaleAtHorizon: 0.56,
+  horizon: FLOOR,
+  scaleAtHorizon: AT_HORIZON,
 
   entries: {
     default: { x: 160, y: 154, facing: 'back' },
