@@ -78,6 +78,17 @@ export class Game {
   /** Last command, for `again`. */
   private lastCommand: Command = EMPTY_COMMAND;
 
+  /**
+   * Source of chance for the gambling rooms. Replaceable so tests can make a
+   * run deterministic.
+   */
+  random: () => number = Math.random;
+
+  /** Integer in [min, max] inclusive. */
+  roll(min: number, max: number): number {
+    return min + Math.floor(this.random() * (max - min + 1));
+  }
+
   constructor(vocab: Vocabulary, hooks: GameHooks = {}) {
     this.vocab = vocab;
     this.hooks = hooks;

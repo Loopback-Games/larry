@@ -102,3 +102,26 @@ describe('scene painter', () => {
     expect(s.colourAt(3, 3)).toBe(6);
   });
 });
+
+describe('polygon fill', () => {
+  it('fills a triangle solidly regardless of what is underneath', async () => {
+    const { fillPolygon } = await import('../src/engine/raster.js');
+    const s = new Surface(20, 20);
+    // Lay down a grid the old flood-based fill would have leaked through.
+    for (let y = 0; y < 20; y += 3) line(s, { colour: 2 }, 0, y, 19, y);
+    fillPolygon(s, { colour: 9 }, [2, 2, 17, 2, 17, 17]);
+    // Interior points are all painted.
+    expect(s.colourAt(15, 12)).toBe(9);
+    expect(s.colourAt(10, 6)).toBe(9);
+    expect(s.colourAt(16, 13)).toBe(9);
+    // Outside the triangle is untouched.
+    expect(s.colourAt(3, 15)).not.toBe(9);
+  });
+
+  it('clips a polygon that extends past the surface', async () => {
+    const { fillPolygon } = await import('../src/engine/raster.js');
+    const s = new Surface(10, 10);
+    expect(() => fillPolygon(s, { colour: 4 }, [-50, -50, 60, -50, 60, 60, -50, 60])).not.toThrow();
+    expect(s.colourAt(5, 5)).toBe(4);
+  });
+});

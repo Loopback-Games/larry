@@ -124,6 +124,48 @@ export function polyline(s: Surface, pen: Pen, points: readonly number[], close 
   }
 }
 
+/**
+ * Scanline polygon fill over a flat [x,y,...] point list.
+ *
+ * Unlike outline-then-flood this does not care what is already on the surface,
+ * so shapes stay solid when drawn over textured ground. Uses the even-odd rule.
+ */
+export function fillPolygon(s: Surface, pen: Pen, points: readonly number[]): void {
+  const n = points.length / 2;
+  if (n < 3) return;
+
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (let i = 1; i < points.length; i += 2) {
+    if (points[i] < minY) minY = points[i];
+    if (points[i] > maxY) maxY = points[i];
+  }
+  const top = Math.max(0, Math.ceil(minY));
+  const bottom = Math.min(s.height - 1, Math.floor(maxY));
+
+  const crossings: number[] = [];
+  for (let y = top; y <= bottom; y++) {
+    crossings.length = 0;
+    const scan = y + 0.5;
+    for (let i = 0; i < n; i++) {
+      const x0 = points[i * 2];
+      const y0 = points[i * 2 + 1];
+      const j = (i + 1) % n;
+      const x1 = points[j * 2];
+      const y1 = points[j * 2 + 1];
+      if (y0 === y1) continue;
+      if (scan < Math.min(y0, y1) || scan >= Math.max(y0, y1)) continue;
+      crossings.push(x0 + ((scan - y0) / (y1 - y0)) * (x1 - x0));
+    }
+    crossings.sort((a, b) => a - b);
+    for (let k = 0; k + 1 < crossings.length; k += 2) {
+      const from = Math.max(0, Math.round(crossings[k]));
+      const to = Math.min(s.width - 1, Math.round(crossings[k + 1]));
+      for (let x = from; x <= to; x++) plot(s, pen, x, y);
+    }
+  }
+}
+
 /** Axis-aligned filled rectangle. */
 export function rect(
   s: Surface,

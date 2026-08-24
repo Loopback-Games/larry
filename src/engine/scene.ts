@@ -1,4 +1,14 @@
-import { Surface, plot, line, polyline, rect, frame, flood, floodMask } from './raster.js';
+import {
+  Surface,
+  plot,
+  line,
+  polyline,
+  rect,
+  frame,
+  flood,
+  floodMask,
+  fillPolygon,
+} from './raster.js';
 import type { Pen } from './raster.js';
 import { CANVAS_W, CANVAS_H, WALK_BLOCKED } from '../constants.js';
 import { rng, randInt } from './rng.js';
@@ -106,17 +116,13 @@ export class Painter {
     return this;
   }
 
-  /** Closed polygon, outlined then flood-filled from its centroid. */
+  /**
+   * Filled polygon. Scanline-filled rather than outlined and flooded, so the
+   * shape stays solid whatever is already painted underneath it.
+   */
   solid(points: readonly number[]): this {
+    fillPolygon(this.surface, this.pen, points);
     polyline(this.surface, this.pen, points, true);
-    let cx = 0;
-    let cy = 0;
-    const n = points.length / 2;
-    for (let i = 0; i < points.length; i += 2) {
-      cx += points[i];
-      cy += points[i + 1];
-    }
-    flood(this.surface, this.pen, cx / n, cy / n);
     return this;
   }
 

@@ -10,6 +10,22 @@ import { darkStreet } from './dark-street.js';
 import { taxi } from './taxi.js';
 import { outsideStore } from './outside-store.js';
 import { insideStore } from './inside-store.js';
+import { outsideDisco } from './outside-disco.js';
+import { insideDisco } from './inside-disco.js';
+import { outsideCasino } from './outside-casino.js';
+import { insideCasino } from './inside-casino.js';
+import { slots } from './slots.js';
+import { blackjack } from './blackjack.js';
+import { lounge } from './lounge.js';
+import { elevatorLobby } from './elevator-lobby.js';
+import { elevator } from './elevator.js';
+import { receptionDesk } from './reception-desk.js';
+import { outsideChapel } from './outside-chapel.js';
+import { insideChapel } from './inside-chapel.js';
+import { honeymoonSuite } from './honeymoon-suite.js';
+import { penthouseLounge } from './penthouse-lounge.js';
+import { penthouseBedroom } from './penthouse-bedroom.js';
+import { penthouseHotTub } from './penthouse-hot-tub.js';
 
 /**
  * Every room in the game. Adding a room here is all that is needed to make it
@@ -27,6 +43,22 @@ export const ROOMS: readonly RoomDef[] = [
   taxi,
   outsideStore,
   insideStore,
+  outsideDisco,
+  insideDisco,
+  outsideCasino,
+  insideCasino,
+  slots,
+  blackjack,
+  lounge,
+  elevatorLobby,
+  elevator,
+  receptionDesk,
+  outsideChapel,
+  insideChapel,
+  honeymoonSuite,
+  penthouseLounge,
+  penthouseBedroom,
+  penthouseHotTub,
 ];
 
 export const ROOMS_BY_ID = new Map(ROOMS.map((r) => [r.id, r]));

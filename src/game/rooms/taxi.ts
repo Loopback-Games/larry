@@ -12,6 +12,8 @@ export const DESTINATIONS: readonly {
   synonyms: readonly string[];
   room: string;
   label: string;
+  /** Kept off the spoken list until the player has a reason to go. */
+  hidden?: boolean;
 }[] = [
   { noun: 'bar', synonyms: ["lefty's", 'lefty', 'pub'], room: RoomId.OutsideBar, label: "Lefty's" },
   {
@@ -31,6 +33,14 @@ export const DESTINATIONS: readonly {
     synonyms: ['hotel', 'casino hotel'],
     room: RoomId.OutsideCasino,
     label: 'the casino',
+  },
+  {
+    noun: 'chapel',
+    synonyms: ['church', 'wedding chapel'],
+    room: RoomId.OutsideChapel,
+    label: 'the chapel',
+    // Only on the list once there is a reason to go there.
+    hidden: true,
   },
 ];
 
@@ -101,6 +111,13 @@ const DRIVER = new Actor({
   },
 });
 
+/** The list of places the driver will admit to knowing, given what you know. */
+function namedPlaces(g: Game): string {
+  const open = DESTINATIONS.filter((d) => !d.hidden || g.flag('fawnReady'));
+  const names = open.map((d) => d.noun.toUpperCase());
+  return `You can name a place: ${names.slice(0, -1).join(', ')} or ${names[names.length - 1]}.`;
+}
+
 function ride(g: Game, room: string, label: string): void {
   g.award(1, 'first-cab-ride');
   g.cue('door');
@@ -141,10 +158,10 @@ export const taxi: RoomDef = {
       g.say(
         'You get in and pull the door shut.',
         '"Where to?" says the driver, without turning round.',
-        'You can name a place: the BAR, the STORE, the DISCO, or the CASINO.',
+        namedPlaces(g),
       );
     } else {
-      g.say('"Where to?" he says again, with slightly less enthusiasm.');
+      g.say('"Where to?" he says again, with slightly less enthusiasm.', namedPlaces(g));
     }
   },
 
