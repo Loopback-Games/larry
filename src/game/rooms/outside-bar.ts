@@ -1,6 +1,8 @@
 import { paint } from '../../engine/scene.js';
 import { C } from '../../engine/palette.js';
 import { WALK_BLOCKED } from '../../constants.js';
+import { Actor } from '../../engine/actor.js';
+import { drawTaxi } from './props.js';
 import { RoomId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
 
@@ -84,6 +86,16 @@ export const outsideBarScene = () =>
     p.saved((q) => q.noInk().noDepth().walk(WALK_BLOCKED).box(280, 112, 14, 14));
   });
 
+const TAXI = new Actor({
+  id: 'taxi',
+  x: 66,
+  y: 166,
+  depth: 15,
+  width: 96,
+  height: 34,
+  render: (p, a) => drawTaxi(p, a.x, a.y),
+});
+
 export const outsideBar: RoomDef = {
   id: RoomId.OutsideBar,
   title: "Outside Lefty's",
@@ -101,7 +113,17 @@ export const outsideBar: RoomDef = {
     'and something in the gutter has given up. This is the most promising ' +
     'place you have been all week.',
 
+  populate: () => [TAXI],
+
   hotspots: [
+    {
+      noun: 'taxi',
+      synonyms: ['cab', 'car', 'taxicab', 'driver', 'cabbie'],
+      look:
+        'A yellow cab idling at the kerb with its light on. The driver has ' +
+        'the window down and one elbow out of it, waiting for the night to ' +
+        'produce a fare.',
+    },
     {
       noun: 'bar',
       synonyms: ['lefty', "lefty's", 'building', 'lefties'],
@@ -150,6 +172,7 @@ export const outsideBar: RoomDef = {
 
   exits: [
     { x: 142, y: 122, w: 36, h: 8, to: RoomId.InsideBar },
+    { x: 26, y: 146, w: 80, h: 22, to: RoomId.Taxi },
     { x: 300, y: 122, w: 20, h: 18, to: RoomId.Alley },
     { x: 0, y: 122, w: 20, h: 18, to: RoomId.DarkStreet },
   ],
