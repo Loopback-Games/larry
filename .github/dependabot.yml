@@ -1,10 +1,32 @@
+# yaml-language-server: $schema=https://json.schemastore.org/dependabot-2.0.json
 version: 2
 updates:
+  # Grouped, because ungrouped these arrive as one pull request per action and
+  # a routine round of runtime bumps turns into five reviews of the same change.
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    groups:
+      actions:
+        patterns:
+          - "*"
+
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
+    groups:
+      # Routine upkeep, safe to review as one change.
+      dev-minor:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
+      # Majors stay separate. Vitest 4, Vite 8 and TypeScript 7 each needed
+      # their own investigation, and batching them would have hidden which one
+      # broke what.
+      dev-major:
+        dependency-type: development
+        update-types:
+          - major

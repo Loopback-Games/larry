@@ -198,22 +198,33 @@ describe('walking the map', () => {
 
   it('keeps the ego on screen and correctly scaled', () => {
     const g = fresh();
+    const failures: string[] = [];
+
     for (const room of ROOMS) {
       if (room.cutscene || room.closeup) continue;
       g.goTo(room.id);
       while (g.dismissMessage());
+
+      // Checked with plain comparisons and reported once at the end. Calling
+      // `expect` per pixel means a million matcher invocations across the map,
+      // which took eight seconds to assert nothing in particular.
       for (const spot of reachable(g)) {
         const x = spot % CANVAS_W;
         const y = Math.floor(spot / CANVAS_W);
-        expect(x, room.id).toBeGreaterThanOrEqual(1);
-        expect(x, room.id).toBeLessThan(CANVAS_W - 1);
-        // No horizon assertion here any more: the walk mask bounds movement,
-        // and a room may legitimately let the player climb above its horizon,
-        // as the storeroom stairs do.
+        if (x < 1 || x >= CANVAS_W - 1) {
+          failures.push(`${room.id}: reachable spot ${x},${y} is off the side of the screen`);
+          break;
+        }
+        // No horizon check: the walk mask bounds movement, and a room may
+        // legitimately let the player climb above its horizon, as the
+        // storeroom stairs do.
         const scale = g.scaleAt(y);
-        expect(scale, room.id).toBeGreaterThan(0.4);
-        expect(scale, room.id).toBeLessThanOrEqual(1);
+        if (scale <= 0.4 || scale > 1) {
+          failures.push(`${room.id}: a walker at row ${y} would be drawn at ${scale}`);
+          break;
+        }
       }
     }
+    expect(failures).toEqual([]);
   });
 });

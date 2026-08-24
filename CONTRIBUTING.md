@@ -13,7 +13,7 @@ and write the expression yourself.
 2. Register it in `src/game/rooms/index.ts`.
 3. Run `npm test`. `test/world.test.ts` will tell you if an exit points nowhere,
    an entry point is inside a wall, or an exit region is unreachable.
-4. Review the art with `npx vite-node tools/room-sheet.mjs rooms.png`, which
+4. Review the art with `node tools/room-sheet.mjs rooms.png`, which
    renders every room, ego and actors included, to one PNG. Pass `walk` as a
    second argument to tint the same sheet by walkability with every exit
    trigger outlined — the quickest way to see a trigger that has drifted away
