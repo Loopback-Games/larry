@@ -109,16 +109,24 @@ decorative — see the note in `vocabulary.ts` for the three puzzles it fixed.
 test/raster       drawing primitives, fills, clipping
 test/font         every glyph well-formed and legible
 test/parser       synonyms, phrases, indirect objects
-test/world        every exit resolves, every entry point is walkable,
-                  every scene paints, no duplicate hotspots
+test/world        every exit resolves and is walkable to, every entry point
+                  is on clear ground, every scene paints
+test/traversal    walks the ego through every exit by steering and ticking
 test/walkthrough  plays the entire game through the parser
 e2e/              boots, renders, plays and saves in a real browser
 ```
 
-The walkthrough test is the one that matters. It types the full solution and
-asserts the score lands on exactly **222**, which is the only way to know that
-every puzzle in the chain is reachable, solvable in order, and worth what it is
-meant to be worth. It has already caught real defects that unit tests missed.
+Two of these carry most of the weight.
+
+`test/walkthrough` types the full solution and asserts the score lands on
+exactly **222** — the only way to know every puzzle is reachable, solvable in
+order, and worth what it should be.
+
+`test/traversal` drives the ego by steering and ticking rather than teleporting
+it. That distinction matters: the walkthrough used `goTo` and so never noticed
+that three rooms bounced the player straight back out of the door they had just
+walked through, leaving the slot machine, the card table and the lounge
+unreachable in normal play.
 
 ---
 

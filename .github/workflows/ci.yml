@@ -12,9 +12,38 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  NODE_VERSION: '22'
+
 jobs:
-  test:
-    name: Type-check, unit tests, browser tests
+  # Fast feedback: a type error or a broken room should not wait on a browser.
+  check:
+    name: Type-check and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+      - name: Type-check
+        run: npm run typecheck
+      - name: Unit, world, traversal and walkthrough tests
+        run: npm test
+      - name: Build
+        run: npm run build
+
+      - name: Check the bundle has not ballooned
+        run: node tools/size-budget.mjs
+
+  browser:
+    name: Browser tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -24,23 +53,53 @@ jobs:
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
       - run: npm ci
 
-      # Cheapest first: a type error should not wait on a browser download.
-      - name: Type-check
-        run: npm run typecheck
+      # Browsers are ~150MB; caching them turns a minute into a few seconds.
+      - name: Resolve the Playwright version
+        id: pw
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
 
-      - name: Unit and integration tests
-        run: npm test
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        id: browser-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
 
-      - name: Build
-        run: npm run build
-
-      - name: Install Playwright browsers
+      - name: Install browsers
         run: npx playwright install --with-deps chromium
+        if: steps.browser-cache.outputs.cache-hit != 'true'
 
-      - name: Browser tests
-        run: npm run test:e2e
+      - name: Install system dependencies
+        run: npx playwright install-deps chromium
+        if: steps.browser-cache.outputs.cache-hit == 'true'
+
+      - run: npm run build
+      - run: npm run test:e2e
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  workflows:
+    name: Lint workflows
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - name: actionlint
+        run: |
+          bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.7/scripts/download-actionlint.bash) 1.7.7
+          ./actionlint -color .github/workflows/*.yml
+
+      - name: zizmor
+        run: pipx run zizmor==1.29.0 --persona=regular .github/workflows/

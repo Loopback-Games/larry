@@ -28,10 +28,23 @@ the run still finishes on exactly 222.
 ## Before opening a pull request
 
 ```sh
-npm run build      # includes the type-check
-npm test
-npm run test:e2e
+npm run verify     # type-check, tests, build, browser tests
 ```
 
-CI runs the same commands. Deployment is automatic on merge to `main`; nothing
-needs publishing by hand.
+CI runs the same commands, so anything that passes here passes there.
+Deployment is automatic on merge to `main`; nothing needs publishing by hand.
+
+If you touch a workflow:
+
+```sh
+npm run lint:workflows   # actionlint + zizmor
+```
+
+## What the tests are for
+
+- `test/world` — the map holds together: exits resolve, entry points are on
+  walkable ground, no room drops you on top of its own doorway.
+- `test/traversal` — the map is *navigable*: it walks the ego through every
+  exit by steering and ticking, exactly as the arrow keys do. Use this rather
+  than `goTo` when you want to know a room really works.
+- `test/walkthrough` — the game is completable and still scores 222.
