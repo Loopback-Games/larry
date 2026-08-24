@@ -87,6 +87,36 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
+  # Room art is written as code, so a diff of a scene says nothing about what
+  # changed on screen. Render the lot and attach it, so an art change can be
+  # looked at rather than guessed at.
+  art:
+    name: Render the room sheet
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Render every room
+        run: |
+          npx vite-node tools/room-sheet.mjs rooms.png colour
+          npx vite-node tools/room-sheet.mjs rooms-walk.png walk
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: room-sheet
+          path: rooms*.png
+          retention-days: 14
+
   workflows:
     name: Lint workflows
     runs-on: ubuntu-latest

@@ -1,39 +1,84 @@
-// Dev utility: render every room's art to one contact sheet for review.
+/**
+ * Render every room to one contact sheet for review.
+ *
+ * Room art is written as code, so a pull request that changes a scene shows a
+ * diff of draw calls and nothing about the result. CI runs this and uploads the
+ * sheet, so an art change can actually be looked at.
+ *
+ *   npx vite-node tools/room-sheet.mjs [out.png] [colour|walk|depth]
+ */
 import { writeFileSync } from 'node:fs';
 import { ROOMS } from '../src/game/rooms/index.ts';
 import { PALETTE_RGB } from '../src/engine/palette.ts';
-import { Painter } from '../src/engine/scene.ts';
-import { drawFigure } from '../src/engine/figure.ts';
-import { LARRY_STYLE } from '../src/game/index.ts';
+import { createGame } from '../src/game/index.ts';
+import { CANVAS_W, CANVAS_H, WALK_BLOCKED } from '../src/constants.ts';
+import { encodePNG } from './png.mjs';
 
+const out = process.argv[2] ?? 'rooms.png';
 const plane = process.argv[3] ?? 'colour';
-const cols = 2;
-const rows = Math.ceil(ROOMS.length / cols);
-const RW = 320, RH = 168, PAD = 6, LABEL = 10;
-const W = cols * (RW + PAD) + PAD;
-const H = rows * (RH + PAD + LABEL) + PAD;
-const buf = Buffer.alloc(W * H * 3, 0x11);
+
+const COLS = 3;
+const PAD = 4;
+const rows = Math.ceil(ROOMS.length / COLS);
+const W = COLS * (CANVAS_W + PAD) + PAD;
+const H = rows * (CANVAS_H + PAD) + PAD;
+const buf = Buffer.alloc(W * H * 3, 0x18);
+
+// Composing through the game rather than calling `scene()` puts the ego and
+// the room's actors in the picture, which is how scale and depth get judged.
+const game = createGame();
+while (game.dismissMessage());
 
 ROOMS.forEach((room, i) => {
-  const surface = room.scene();
-  // Drop Larry in at the default entry so scale and depth can be judged.
-  const entry = room.entries.default;
-  if (plane === 'colour' && entry) {
-    drawFigure(new Painter(surface), LARRY_STYLE, entry.facing ?? 'front', 0, entry.x, entry.y);
-  }
-  const src = surface[plane];
-  const ox = PAD + (i % cols) * (RW + PAD);
-  const oy = PAD + Math.floor(i / cols) * (RH + PAD + LABEL);
-  for (let y = 0; y < RH; y++)
-    for (let x = 0; x < RW; x++) {
-      const v = src[y * RW + x];
-      const [r, g, b] = plane === 'colour' ? PALETTE_RGB[v] : PALETTE_RGB[(v * 3) % PALETTE_RGB.length];
+  game.goTo(room.id);
+  while (game.dismissMessage());
+  const frame = game.renderFrame().surface;
+
+  const ox = PAD + (i % COLS) * (CANVAS_W + PAD);
+  const oy = PAD + Math.floor(i / COLS) * (CANVAS_H + PAD);
+
+  for (let y = 0; y < CANVAS_H; y++) {
+    for (let x = 0; x < CANVAS_W; x++) {
+      const at = y * CANVAS_W + x;
+      let [r, g, b] = PALETTE_RGB[frame.colour[at]] ?? [255, 0, 255];
+      if (plane === 'walk') {
+        // Tint the art by walkability rather than replacing it, so blocked
+        // scenery can be checked against what is drawn there.
+        const blocked = frame.walk[at] === WALK_BLOCKED;
+        r = r * 0.3 + (blocked ? 95 : 0);
+        g = g * 0.3 + (blocked ? 0 : 90);
+        b = b * 0.3;
+      } else if (plane === 'depth') {
+        const d = frame.depth[at] * 17;
+        r = g = b = d;
+      }
       const o = ((oy + y) * W + ox + x) * 3;
-      buf[o] = r; buf[o + 1] = g; buf[o + 2] = b;
+      buf[o] = r;
+      buf[o + 1] = g;
+      buf[o + 2] = b;
     }
+  }
+
+  // Outline every exit in white, so a trigger that has drifted away from the
+  // art it belongs to is visible at a glance.
+  if (plane === 'walk') {
+    for (const exit of room.exits ?? []) {
+      const mark = (x, y) => {
+        if (x < 0 || y < 0 || x >= CANVAS_W || y >= CANVAS_H) return;
+        const o = ((oy + y) * W + ox + x) * 3;
+        buf[o] = buf[o + 1] = buf[o + 2] = 255;
+      };
+      for (let x = exit.x; x < exit.x + exit.w; x++) {
+        mark(x, exit.y);
+        mark(x, exit.y + exit.h - 1);
+      }
+      for (let y = exit.y; y < exit.y + exit.h; y++) {
+        mark(exit.x, y);
+        mark(exit.x + exit.w - 1, y);
+      }
+    }
+  }
 });
 
-const out = process.argv[2] ?? '/tmp/rooms.ppm';
-writeFileSync(out, Buffer.concat([Buffer.from(`P6\n${W} ${H}\n255\n`), buf]));
+writeFileSync(out, encodePNG(buf, W, H));
 console.log(`${ROOMS.length} rooms -> ${out} (${W}x${H}) plane=${plane}`);
-console.log(ROOMS.map((r, i) => `${i + 1}. ${r.title}`).join('   '));

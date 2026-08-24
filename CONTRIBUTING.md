@@ -13,10 +13,32 @@ and write the expression yourself.
 2. Register it in `src/game/rooms/index.ts`.
 3. Run `npm test`. `test/world.test.ts` will tell you if an exit points nowhere,
    an entry point is inside a wall, or an exit region is unreachable.
-4. Review the art with `npx vite-node tools/room-sheet.mjs /tmp/rooms.ppm`.
+4. Review the art with `npx vite-node tools/room-sheet.mjs rooms.png`, which
+   renders every room, ego and actors included, to one PNG. Pass `walk` as a
+   second argument to tint the same sheet by walkability with every exit
+   trigger outlined — the quickest way to see a trigger that has drifted away
+   from the art it belongs to. CI renders both on every run and attaches them
+   as the `room-sheet` artifact.
 
 Scenes are painted top-down: draw the floor before anything standing on it, or
 the floor will paint over it.
+
+## Ways out
+
+Declare exits as `Doorway` specs and use them twice: `doorways(p, DOORS)` in
+the scene function paints them, and `exits: exitsOf(DOORS)` turns the same
+list into triggers. Never hand-write an exit rectangle. When the two were
+written separately they drifted, and the cab outside Lefty's ended up being
+reached by walking into a bare patch of road.
+
+Finish the scene with `walls(p, FLOOR, DOORS)`, which blocks everything above
+the floor line and then reopens each threshold, so a doorway you can see is
+always one you can stand in.
+
+Rooms should also set `horizon` and `scaleAtHorizon`. The horizon is the floor
+line, used for perspective scaling; it does not bound movement, so a room may
+let the player climb above it where the walk mask allows, as the storeroom
+stairs do.
 
 ## Adding a puzzle
 
@@ -48,3 +70,20 @@ npm run lint:workflows   # actionlint + zizmor
   exit by steering and ticking, exactly as the arrow keys do. Use this rather
   than `goTo` when you want to know a room really works.
 - `test/walkthrough` — the game is completable and still scores 222.
+
+## Artwork
+
+The palette is a set of hue ramps rather than a flat table, so every colour has
+somewhere darker and somewhere lighter to go. Use that: `slab` for anything
+with volume, `contact` where two surfaces meet, `sweep` for a graded surface,
+and `relight` to push what is already painted towards light or shadow. Light
+comes from the upper left everywhere in the game.
+
+Prefer `sweep` to `gradient` on any large area. `gradient` dithers between two
+fixed inks and over a whole wall reads as sandpaper; `sweep` steps through the
+colour's own ramp and dithers only at the transitions.
+
+`test/art.test.ts` measures whether a room can be read at all: how many colours
+it uses, whether one flat colour dominates, whether it has more than a couple
+of brightness levels, and whether the floor is distinguishable from the wall
+behind it. If it fails, the room is a coloured rectangle rather than a picture.

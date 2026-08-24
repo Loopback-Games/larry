@@ -396,11 +396,12 @@ export class Painter {
    * and stops large flat surfaces reading as blank.
    */
   vignette(steps = -1): this {
-    const cx = this.width / 2;
-    const cy = this.height / 2;
+    // Distance from the nearest frame edge rather than from the centre. A
+    // radial falloff draws a visible oval across a flat wall, which is worse
+    // than the flatness it was meant to relieve.
     const at = (x: number, y: number) => {
-      const d = Math.sqrt(((x - cx) / cx) ** 2 + ((y - cy) / cy) ** 2);
-      return d < 0.62 ? 0 : steps * Math.min(1, (d - 0.62) / 0.5);
+      const edge = Math.min(x / this.width, y / this.height, 1 - x / this.width, 1 - y / this.height);
+      return edge > 0.18 ? 0 : steps * (1 - edge / 0.18);
     };
     for (let y = 0; y < this.height; y++) {
       for (let x = 0; x < this.width; x++) {
