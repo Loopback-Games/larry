@@ -80,9 +80,23 @@ function main() {
   if (!dirty) {
     console.log('gh-pages is already up to date.');
   } else {
+    // The published branch records who ran the deploy. Fall back to a project
+    // identity so a machine with no global git config can still publish.
+    const identity = [];
+    const configured = (key) => {
+      try {
+        return git('config', key);
+      } catch {
+        return '';
+      }
+    };
+    if (!configured('user.name')) identity.push('-c', 'user.name=larry-deploy');
+    if (!configured('user.email')) {
+      identity.push('-c', 'user.email=larry-deploy@users.noreply.github.com');
+    }
     execFileSync(
       'git',
-      ['commit', '-m', `deploy: build from ${branch} at ${sha}`],
+      [...identity, 'commit', '-m', `deploy: build from ${branch} at ${sha}`],
       { cwd: WORKTREE, stdio: 'inherit' },
     );
     execFileSync('git', ['push', 'origin', BRANCH], { cwd: WORKTREE, stdio: 'inherit' });

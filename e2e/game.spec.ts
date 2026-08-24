@@ -38,7 +38,8 @@ test.beforeEach(async ({ page }) => {
     if (m.type() === 'error') errors.push(m.text());
   });
   (page as unknown as { __errors: string[] }).__errors = errors;
-  await page.goto('/');
+  // Relative, so the project's /larry/ base path is preserved.
+  await page.goto('./');
   await page.waitForFunction(() => document.getElementById('app')?.dataset.state === 'ready');
 });
 
