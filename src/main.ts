@@ -198,11 +198,11 @@ function boot(): void {
     }
     const point = canvasToScene(canvas, event.clientX, event.clientY);
     if (!point) return;
-    // Walking to an unreachable spot should not strand Larry mid-stride.
-    if (!game.canOccupy(point.x, point.y, game.ego.collisionHalfWidth)) return;
-    game.steer(0, 0);
     held.clear();
-    game.ego.walkTo(point.x, point.y);
+    game.steer(0, 0);
+    // Routing around scenery, so a tap across the room does not walk into a
+    // wall and stop. An unreachable spot is simply ignored.
+    game.walkEgoTo(point.x, point.y);
   });
 
   // ---- panels ------------------------------------------------------------

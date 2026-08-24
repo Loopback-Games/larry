@@ -1,7 +1,63 @@
 import { paint } from '../../engine/scene.js';
 import { C, darker } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
+
+/** Where the floor meets the back of the room. */
+const FLOOR = 118;
+
+const DOORS: readonly Doorway[] = [
+  { to: RoomId.OutsideCasino, label: 'Street', side: 'front', x: 160, w: 46 },
+  {
+    to: RoomId.Slots,
+    label: 'Slot machines',
+    side: 'back',
+    x: 48,
+    y: FLOOR,
+    w: 34,
+    h: 44,
+    kind: 'arch',
+    colour: C.gold,
+    through: C.maroonDeep,
+  },
+  {
+    to: RoomId.Lounge,
+    label: 'Lounge',
+    side: 'back',
+    x: 132,
+    y: FLOOR,
+    w: 34,
+    h: 44,
+    kind: 'arch',
+    colour: C.gold,
+    through: C.violetDeep,
+  },
+  {
+    to: RoomId.Blackjack,
+    label: 'Card tables',
+    side: 'back',
+    x: 212,
+    y: FLOOR,
+    w: 34,
+    h: 44,
+    kind: 'arch',
+    colour: C.gold,
+    through: C.greenDeep,
+  },
+  {
+    to: RoomId.ElevatorLobby,
+    label: 'Lifts',
+    side: 'back',
+    x: 288,
+    y: FLOOR,
+    w: 34,
+    h: 44,
+    kind: 'arch',
+    colour: C.gold,
+    through: C.tealDeep,
+  },
+];
 
 /**
  * The casino floor. Slot machines down one wall, a card table, a lift to the
@@ -78,7 +134,8 @@ export const insideCasinoScene = () =>
 
     p.depthRamp(118, p.height, 5, 14);
     // Only the wall and its fittings are solid; the whole carpet is walkable.
-    p.blockRect(0, 0, p.width, 118);
+    doorways(p, DOORS);
+    walls(p, FLOOR, DOORS);
   });
 
 export const insideCasino: RoomDef = {
@@ -86,13 +143,16 @@ export const insideCasino: RoomDef = {
   title: 'The Casino Floor',
   scene: insideCasinoScene,
 
+  horizon: 118,
+  scaleAtHorizon: 0.6,
+
   entries: {
-    default: { x: 160, y: 150, facing: 'back' },
-    [RoomId.OutsideCasino]: { x: 160, y: 162, facing: 'back' },
-    [RoomId.Slots]: { x: 56, y: 140, facing: 'front' },
-    [RoomId.Lounge]: { x: 164, y: 140, facing: 'front' },
-    [RoomId.Blackjack]: { x: 232, y: 140, facing: 'front' },
-    [RoomId.ElevatorLobby]: { x: 292, y: 140, facing: 'front' },
+    default: { x: 160, y: 148, facing: 'back' },
+    [RoomId.OutsideCasino]: { x: 160, y: 152, facing: 'back' },
+    [RoomId.Slots]: { x: 48, y: 130, facing: 'front' },
+    [RoomId.Lounge]: { x: 132, y: 130, facing: 'front' },
+    [RoomId.Blackjack]: { x: 212, y: 130, facing: 'front' },
+    [RoomId.ElevatorLobby]: { x: 288, y: 130, facing: 'front' },
   },
 
   describe:
@@ -117,13 +177,7 @@ export const insideCasino: RoomDef = {
     },
   ],
 
-  exits: [
-    { x: 128, y: 164, w: 64, h: 4, to: RoomId.OutsideCasino },
-    { x: 8, y: 119, w: 104, h: 9, to: RoomId.Slots },
-    { x: 136, y: 119, w: 58, h: 9, to: RoomId.Lounge },
-    { x: 200, y: 119, w: 68, h: 9, to: RoomId.Blackjack },
-    { x: 272, y: 119, w: 44, h: 9, to: RoomId.ElevatorLobby },
-  ],
+  exits: exitsOf(DOORS),
 
   onCommand(g, cmd) {
     if (cmd.is('get', ItemId.DiscoPass) || cmd.is('get', 'card')) {

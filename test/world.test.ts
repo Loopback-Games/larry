@@ -75,12 +75,31 @@ describe('world integrity', () => {
   });
 
   it('lets Larry stand where each room puts him', () => {
+    const g = createGame();
+    while (g.dismissMessage());
     for (const room of ROOMS) {
       if (room.cutscene || room.closeup) continue;
-      const s = room.scene();
       for (const [name, point] of Object.entries(room.entries)) {
-        const mask = s.walk[Math.round(point.y) * CANVAS_W + Math.round(point.x)];
-        expect(mask, `${room.id}.${name} spawns inside scenery`).not.toBe(WALK_BLOCKED);
+        g.goTo(room.id);
+        // The ego is a box, not a point. Testing one pixel let the penthouse
+        // put the player half inside a coffee table, where nothing could move.
+        const half = g.ego.footHalfWidth * g.scaleAt(point.y);
+        expect(
+          g.canOccupy(point.x, point.y, half),
+          `${room.id}.${name} spawns inside scenery`,
+        ).toBe(true);
+
+        // Spawning inside an exit is what the suppression logic exists to
+        // survive; it should not have to. The chapel used to put the player in
+        // its own doorway, which then never re-armed.
+        for (const exit of room.exits ?? []) {
+          const inside =
+            point.x >= exit.x &&
+            point.x < exit.x + exit.w &&
+            point.y >= exit.y &&
+            point.y < exit.y + exit.h;
+          expect(inside, `${room.id}.${name} spawns inside the exit to ${exit.to}`).toBe(false);
+        }
       }
     }
   });

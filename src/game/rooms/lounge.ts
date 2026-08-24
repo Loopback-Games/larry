@@ -1,8 +1,16 @@
 import { paint } from '../../engine/scene.js';
 import { C, darker } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { Actor } from '../../engine/actor.js';
 import { RoomId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
+
+/** Where the floor meets the back of the room. */
+const FLOOR = 114;
+
+const DOORS: readonly Doorway[] = [
+  { to: RoomId.InsideCasino, label: 'Casino floor', side: 'front', x: 160, w: 48 },
+];
 
 /** Jokes the comedian works through, in order, for an audience of one. */
 const ROUTINE: readonly string[] = [
@@ -62,7 +70,8 @@ export const loungeScene = () =>
       p.ink(C.yellow).dot(tx, ty - 9).dot(tx, ty - 10);
     }
 
-    p.blockRect(0, 0, p.width, 114);
+    doorways(p, DOORS);
+    walls(p, FLOOR, DOORS);
     p.depthRamp(114, p.height, 6, 14);
   });
 
@@ -109,7 +118,10 @@ export const lounge: RoomDef = {
   title: 'The Lounge',
   scene: loungeScene,
 
-  entries: { default: { x: 160, y: 156, facing: 'back' } },
+  horizon: 114,
+  scaleAtHorizon: 0.62,
+
+  entries: { default: { x: 160, y: 150, facing: 'back' } },
 
   describe:
     'A low room with a curtain, a small stage, and eleven empty tables with ' +
@@ -125,7 +137,7 @@ export const lounge: RoomDef = {
     { noun: 'tables', synonyms: ['table', 'candles', 'candle'], look: 'Eleven tables, eleven candles, no people.' },
   ],
 
-  exits: [{ x: 0, y: 164, w: 320, h: 4, to: RoomId.InsideCasino }],
+  exits: exitsOf(DOORS),
 
   onCommand(g, cmd) {
     if (cmd.isBare('sit') || cmd.isAny('sit', 'tables', 'stage')) {

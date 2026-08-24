@@ -1,7 +1,25 @@
 import { paint } from '../../engine/scene.js';
 import { C, darker } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
+
+/** Where the floor meets the back of the room. */
+const FLOOR = 118;
+
+const DOORS: readonly Doorway[] = [
+  {
+    to: RoomId.Elevator,
+    label: 'Lift',
+    side: 'left',
+    y: 146,
+    w: 32,
+    when: (g) =>
+      g.flag('untied')
+        ? true
+        : 'You are tied to the bed. The door might as well be in another country.',
+  },
+];
 
 /**
  * The honeymoon suite, four minutes after the wedding. Heart-shaped bed, a
@@ -60,7 +78,8 @@ export const honeymoonSuiteScene = () =>
     p.ink(C.pink).line(0, 118, p.width - 1, 118);
 
     p.depthRamp(118, p.height, 6, 14);
-    p.blockRect(0, 0, p.width, 118);
+    doorways(p, DOORS);
+    walls(p, FLOOR, DOORS);
     p.blockRect(70, 118, 180, 20);
     p.blockRect(24, 118, 42, 8);
   });
@@ -69,6 +88,9 @@ export const honeymoonSuite: RoomDef = {
   id: RoomId.HoneymoonSuite,
   title: 'The Honeymoon Suite',
   scene: honeymoonSuiteScene,
+
+  horizon: 118,
+  scaleAtHorizon: 0.7,
 
   entries: {
     default: { x: 160, y: 150, facing: 'front' },
@@ -128,13 +150,7 @@ export const honeymoonSuite: RoomDef = {
     { noun: 'mirror', synonyms: ['mirrors', 'mirrored wall'], look: 'You can watch yourself being tied to a bed, which is a service nobody asked for.' },
   ],
 
-  exits: [
-    {
-      x: 0, y: 126, w: 22, h: 30,
-      to: RoomId.Elevator,
-      when: (g) => (g.flag('untied') ? true : 'You are tied to the bed. The door might as well be in another country.'),
-    },
-  ],
+  exits: exitsOf(DOORS),
 
   onCommand(g, cmd) {
     if (cmd.isAny('turn on', 'radio') || cmd.isAny('use', 'radio') || cmd.isAny('listen', 'radio')) {

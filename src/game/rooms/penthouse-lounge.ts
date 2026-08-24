@@ -1,7 +1,49 @@
 import { paint } from '../../engine/scene.js';
 import { C, darker } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
+
+/** Where the floor meets the back of the room. */
+const FLOOR = 116;
+
+const DOORS: readonly Doorway[] = [
+  {
+    to: RoomId.PenthouseBedroom,
+    label: 'Bedroom',
+    side: 'back',
+    x: 62,
+    y: FLOOR,
+    w: 34,
+    h: 46,
+    colour: C.brownLit,
+    through: C.black,
+  },
+  {
+    to: RoomId.Elevator,
+    label: 'Lift',
+    side: 'back',
+    x: 248,
+    y: FLOOR,
+    w: 36,
+    h: 46,
+    kind: 'double',
+    colour: C.gold,
+    through: C.charcoal,
+  },
+  {
+    to: RoomId.PenthouseHotTub,
+    label: 'Terrace',
+    side: 'right',
+    y: 142,
+    w: 30,
+    when: (g) =>
+      g.flag('ropeTied')
+        ? true
+        : 'It is one level down and a long way out. You would need something ' +
+          'to climb.',
+  },
+];
 
 /** The penthouse living room, and the balcony above the hot tub terrace. */
 export const penthouseLoungeScene = () =>
@@ -30,8 +72,8 @@ export const penthouseLoungeScene = () =>
     p.ink(C.white).box(24, 70, 24, 8).box(84, 70, 24, 8);
     // The low table sits off to the left, clear of the two doorways, so there
     // is a walkway from the lift to the bedroom.
-    p.ink(C.slate).box(10, 128, 52, 6).box(16, 134, 5, 12).box(52, 134, 5, 12);
-    p.ink(C.red).box(28, 122, 10, 6);
+    p.ink(C.slate).box(6, 128, 42, 6).box(11, 134, 5, 12).box(38, 134, 5, 12);
+    p.ink(C.red).box(20, 122, 10, 6);
 
     // A bar cart and a lamp, because this is that kind of apartment.
     p.ink(C.yellow).box(122, 96, 26, 4).box(124, 100, 3, 20).box(144, 100, 3, 20);
@@ -61,9 +103,10 @@ export const penthouseLoungeScene = () =>
     for (let x = 280; x < 320; x += 12) p.ink(C.slate).box(x, 116, 4, 30);
 
     p.depthRamp(116, p.height, 6, 14);
-    p.blockRect(0, 0, p.width, 116);
+    doorways(p, DOORS);
+    walls(p, FLOOR, DOORS);
     // Only the low table is solid down here; both doorways must stay clear.
-    p.blockRect(10, 128, 52, 18);
+    p.blockRect(6, 128, 42, 18);
     p.blockRect(264, 112, 56, 10);
   });
 
@@ -72,11 +115,14 @@ export const penthouseLounge: RoomDef = {
   title: 'The Penthouse',
   scene: penthouseLoungeScene,
 
+  horizon: 116,
+  scaleAtHorizon: 0.66,
+
   entries: {
-    default: { x: 160, y: 150, facing: 'front' },
-    [RoomId.Elevator]: { x: 121, y: 152, facing: 'front' },
-    [RoomId.PenthouseBedroom]: { x: 78, y: 152, facing: 'right' },
-    [RoomId.PenthouseHotTub]: { x: 280, y: 150, facing: 'left' },
+    default: { x: 160, y: 148, facing: 'front' },
+    [RoomId.Elevator]: { x: 248, y: 132, facing: 'front' },
+    [RoomId.PenthouseBedroom]: { x: 62, y: 132, facing: 'front' },
+    [RoomId.PenthouseHotTub]: { x: 282, y: 146, facing: 'left' },
   },
 
   describe:
@@ -101,19 +147,7 @@ export const penthouseLounge: RoomDef = {
     { noun: 'bedroom door', synonyms: ['bedroom'], look: 'A door standing slightly open on a dark bedroom.' },
   ],
 
-  exits: [
-    { x: 104, y: 138, w: 34, h: 10, to: RoomId.Elevator },
-    { x: 58, y: 138, w: 38, h: 10, to: RoomId.PenthouseBedroom },
-    {
-      x: 288, y: 124, w: 32, h: 30,
-      to: RoomId.PenthouseHotTub,
-      when: (g) =>
-        g.flag('ropeTied')
-          ? true
-          : 'It is one level down and a long way out. You would need something ' +
-            'to climb.',
-    },
-  ],
+  exits: exitsOf(DOORS),
 
   onCommand(g, cmd) {
     const tying =

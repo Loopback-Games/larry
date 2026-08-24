@@ -11,13 +11,24 @@ export interface EntryPoint {
   readonly facing?: Facing;
 }
 
-/** A walkable region that leads somewhere else. */
+/**
+ * A walkable region that leads somewhere else.
+ *
+ * Build these with `exitsOf` from `doorway.ts` rather than by hand, so the
+ * trigger is always derived from the opening that was painted.
+ */
 export interface Exit {
   readonly x: number;
   readonly y: number;
   readonly w: number;
   readonly h: number;
   readonly to: string;
+  /**
+   * Where this goes, shown over the player's head while they stand in it.
+   * Walking into an unmarked rectangle and being teleported is the single
+   * most disorienting thing an adventure game can do.
+   */
+  readonly label: string;
   /** Blocks the exit and explains why when it returns a string. */
   readonly when?: (g: Game) => true | string;
 }

@@ -1,7 +1,15 @@
 import { paint } from '../../engine/scene.js';
 import { C, darker } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
+
+/** Where the floor meets the back of the room. */
+const FLOOR = 120;
+
+const DOORS: readonly Doorway[] = [
+  { to: RoomId.PenthouseLounge, label: 'Lounge', side: 'right', y: 146, w: 32 },
+];
 
 /** The penthouse bedroom, and the wardrobe with something folded in the bottom. */
 export const penthouseBedroomScene = () =>
@@ -49,7 +57,8 @@ export const penthouseBedroomScene = () =>
     p.ink(C.brown).box(296, 92, 24, 28);
 
     p.depthRamp(120, p.height, 6, 14);
-    p.blockRect(0, 0, p.width, 120);
+    doorways(p, DOORS);
+    walls(p, FLOOR, DOORS);
     p.blockRect(60, 118, 168, 12);
   });
 
@@ -57,6 +66,9 @@ export const penthouseBedroom: RoomDef = {
   id: RoomId.PenthouseBedroom,
   title: 'The Penthouse Bedroom',
   scene: penthouseBedroomScene,
+
+  horizon: 120,
+  scaleAtHorizon: 0.7,
 
   entries: {
     default: { x: 260, y: 148, facing: 'left' },
@@ -76,7 +88,7 @@ export const penthouseBedroom: RoomDef = {
     { noun: 'clothes', synonyms: ['dresses', 'suits'], look: 'Not your size, not your colour, not your price bracket.' },
   ],
 
-  exits: [{ x: 296, y: 120, w: 24, h: 20, to: RoomId.PenthouseLounge }],
+  exits: exitsOf(DOORS),
 
   onCommand(g, cmd) {
     if (cmd.is('get', ItemId.Doll) || (cmd.verb === 'look in' && cmd.object === 'wardrobe')) {

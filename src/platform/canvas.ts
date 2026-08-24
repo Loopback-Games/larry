@@ -1,4 +1,4 @@
-import { EGA_ABGR } from '../engine/palette.js';
+import { PALETTE_ABGR } from '../engine/palette.js';
 import type { Surface } from '../engine/raster.js';
 import { SCREEN_W, SCREEN_H } from '../engine/display.js';
 
@@ -46,7 +46,7 @@ export class CanvasRenderer {
 
   draw(screen: Surface): void {
     const src = screen.colour;
-    for (let i = 0; i < src.length; i++) this.pixels[i] = EGA_ABGR[src[i] & 0x0f];
+    for (let i = 0; i < src.length; i++) this.pixels[i] = PALETTE_ABGR[src[i]];
     this.bufferCtx.putImageData(this.image, 0, 0);
 
     const { width, height } = this.canvas;

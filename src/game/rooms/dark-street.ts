@@ -1,7 +1,16 @@
 import { paint } from '../../engine/scene.js';
 import { C, darker } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { RoomId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
+
+
+/** Where the floor meets the back of the room. */
+const FLOOR = 130;
+
+const DOORS: readonly Doorway[] = [
+  { to: RoomId.OutsideBar, label: 'Back east', side: 'right', y: 150, w: 34 },
+];
 
 /**
  * The wrong way. Walking west out of Lefty's leads here, and here is where the
@@ -56,7 +65,8 @@ export const darkStreetScene = () =>
     p.ink(C.red).dot(240, 150).dot(248, 150);
 
     p.depthRamp(130, p.height, 5, 14);
-    p.blockRect(0, 0, p.width, 130);
+    doorways(p, DOORS);
+    walls(p, FLOOR, DOORS);
   });
 
 export const darkStreet: RoomDef = {
@@ -64,32 +74,10 @@ export const darkStreet: RoomDef = {
   title: 'A Dark Street',
   scene: darkStreetScene,
 
-  entries: { default: { x: 290, y: 150, facing: 'left' } },
+  horizon: 130,
+  scaleAtHorizon: 0.66,
 
-  describe:
-    'The street runs on into a dark that the streetlight is not even trying to ' +
-    'reach. Every frontage is shuttered. Nothing down here is open, and ' +
-    'something down here is awake.',
-
-  hotspots: [
-    { noun: 'shutters', synonyms: ['shops', 'shopfronts', 'frontages'], look: 'Steel shutters, rusted at the bottom, all of them closed for good.' },
-    { noun: 'streetlight', synonyms: ['lamp', 'light', 'lamppost'], look: 'It buzzes and casts a cone of light about three feet wide.' },
-    { noun: 'dark', synonyms: ['darkness', 'shadows'], look: 'Two small red points at about head height. They move when you move.' },
-  ],
-
-  exits: [{ x: 296, y: 132, w: 24, h: 34, to: RoomId.OutsideBar }],
-
-  onEnter(g) {
-    if (!g.flag('warnedDarkStreet')) {
-      g.set('warnedDarkStreet');
-      g.say(
-        'Every instinct you have, and you have very few, tells you this is the ' +
-          'wrong direction.',
-        'Behind you, the neon of the bar is still visible. Ahead there is only ' +
-          'the dark, and something in it that has noticed you.',
-      );
-    }
-  },
+  entries: { default: { x: 280, y: 152, facing: 'left' } },
 
   onTick(g) {
     // Loitering here is fatal; the way back is a short walk east.

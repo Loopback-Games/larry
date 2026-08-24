@@ -1,10 +1,19 @@
 import { paint } from '../../engine/scene.js';
 import { C, darker } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { Actor } from '../../engine/actor.js';
 import { rng, randInt } from '../../engine/rng.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
 import type { Game } from '../../engine/engine.js';
+
+
+/** Where the floor meets the back of the room. */
+const FLOOR = 92;
+
+const DOORS: readonly Doorway[] = [
+  { to: RoomId.OutsideDisco, label: 'Street', side: 'front', x: 160, w: 46 },
+];
 
 /**
  * The disco. A lit floor, a mirror ball, and one woman at a table who is the
@@ -81,7 +90,8 @@ export const insideDiscoScene = () =>
     }
 
     p.depthRamp(92, p.height, 4, 14);
-    p.blockRect(0, 0, p.width, 92);
+    doorways(p, DOORS);
+    walls(p, FLOOR, DOORS);
     p.blockRect(18, 126, 50, 22);
     p.blockRect(250, 128, 50, 22);
   });
@@ -151,9 +161,12 @@ export const insideDisco: RoomDef = {
   title: 'The Disco',
   scene: insideDiscoScene,
 
+  horizon: 92,
+  scaleAtHorizon: 0.56,
+
   entries: {
-    default: { x: 160, y: 160, facing: 'back' },
-    [RoomId.OutsideDisco]: { x: 160, y: 156, facing: 'back' },
+    default: { x: 160, y: 154, facing: 'back' },
+    [RoomId.OutsideDisco]: { x: 160, y: 152, facing: 'back' },
   },
 
   describe:
@@ -194,7 +207,7 @@ export const insideDisco: RoomDef = {
     { noun: 'table', synonyms: ['tables', 'booths'], look: 'Two booth tables, each with a candle in a red glass.' },
   ],
 
-  exits: [{ x: 128, y: 162, w: 64, h: 6, to: RoomId.OutsideDisco }],
+  exits: exitsOf(DOORS),
 
   onCommand(g, cmd) {
     // ---- sitting down -----------------------------------------------------

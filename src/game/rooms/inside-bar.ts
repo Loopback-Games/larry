@@ -1,8 +1,27 @@
 import { paint } from '../../engine/scene.js';
-import { C, darker } from '../../engine/palette.js';
+import { C, shade } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { Actor } from '../../engine/actor.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
+
+/** Where the back wall meets the floorboards. */
+const FLOOR = 120;
+
+const DOORS: readonly Doorway[] = [
+  {
+    to: RoomId.BarHallway,
+    label: 'Back',
+    side: 'back',
+    x: 30,
+    y: FLOOR,
+    w: 28,
+    h: 54,
+    colour: C.woodDim,
+    through: C.black,
+  },
+  { to: RoomId.OutsideBar, label: 'Street', side: 'front', x: 160, w: 44 },
+];
 
 /**
  * Inside Lefty's. Dim, red, and emptier than it should be. The bar runs across
@@ -11,86 +30,100 @@ import type { RoomDef } from '../../engine/room.js';
 export const insideBarScene = () =>
   paint((p) => {
     // ---- room shell -------------------------------------------------------
-    p.ink(C.maroon).box(0, 0, p.width, 122);
-    p.ink(C.black).box(0, 0, p.width, 12);
-    p.ink(C.brown).line(0, 12, p.width - 1, 12);
+    // A dim red room lit from above the counter, so the walls fall away at the
+    // corners and the bar itself is the brightest thing in the picture.
+    p.ink(C.maroon).box(0, 0, p.width, FLOOR);
+    p.sweep(0, 0, p.width, FLOOR, -1, 1);
+    p.ink(C.maroonDeep).box(0, 0, p.width, 14);
+    p.slab(0, 12, p.width, 4, C.woodDeep, 1);
 
     // Ceiling beams pulling back towards the bar.
-    p.ink(C.black);
-    p.line(0, 12, 44, 40).line(p.width - 1, 12, 276, 40);
-    p.ink(C.maroon).line(0, 26, 60, 40).line(p.width - 1, 26, 260, 40);
+    p.ink(C.maroonDeep);
+    p.line(0, 14, 48, 40).line(p.width - 1, 14, 272, 40);
+    p.line(0, 30, 64, 42).line(p.width - 1, 30, 256, 42);
 
-    // Hanging lamps over the counter.
+    // Hanging lamps over the counter, each throwing light on the wall behind.
     for (const lx of [96, 160, 224]) {
-      p.ink(C.black).line(lx, 12, lx, 26);
-      p.ink(C.slate).solid([lx - 8, 32, lx + 8, 32, lx + 5, 26, lx - 5, 26]);
-      p.ink(C.yellow).box(lx - 6, 32, 12, 2);
+      p.ink(C.charcoal).box(lx - 1, 14, 2, 12);
+      p.ink(C.pewter).solid([lx - 9, 32, lx + 9, 32, lx + 5, 25, lx - 5, 25]);
+      p.ink(C.silver).line(lx - 9, 32, lx + 8, 32);
+      p.ink(C.yellowPale).box(lx - 6, 33, 12, 2);
+      p.glow(lx, 36, 22, C.crimson, 0.4, [C.maroon, C.crimson, C.maroonDeep]);
+      p.lightPool(lx, 40, 30, 26, 1);
     }
 
     // ---- back bar ---------------------------------------------------------
-    p.ink(C.brown).box(72, 40, 176, 44);
-    p.ink(C.black).outline(72, 40, 176, 44);
-    p.ink(C.slate).line(72, 56, 247, 56).line(72, 70, 247, 70);
+    p.slab(70, 38, 180, 48, C.woodDim, 1);
+    p.ink(C.woodDeep).box(72, 40, 176, 44);
+    p.sweep(72, 40, 176, 44, -1, 0);
+    for (const shelfY of [55, 70]) {
+      p.slab(72, shelfY, 176, 3, C.brown, 1);
+    }
 
+    // Bottles: warm spirits on top, green and clear below, all glinting on the
+    // same side because the light is over the counter.
     const bottles = [
-      [78, C.lime], [88, C.yellow], [98, C.teal], [110, C.red], [120, C.white],
-      [132, C.lime], [142, C.yellow], [154, C.teal], [166, C.red], [176, C.white],
-      [188, C.lime], [198, C.yellow], [210, C.teal], [222, C.red], [234, C.white],
+      [78, C.gold], [88, C.tan], [98, C.brownLit], [110, C.crimson], [120, C.bone],
+      [132, C.greenDim], [142, C.gold], [154, C.tealLit], [166, C.crimson], [176, C.bone],
+      [188, C.greenDim], [198, C.goldLit], [210, C.teal], [222, C.maroon], [234, C.ivory],
     ] as const;
     for (const [bx, colour] of bottles) {
-      p.ink(colour).box(bx, 44, 4, 11);
-      p.ink(darker(colour)).dot(bx, 44).dot(bx + 3, 44);
-      p.ink(colour).box(bx, 59, 4, 10);
+      for (const by of [44, 59]) {
+        p.ink(colour).box(bx, by, 5, 11);
+        p.ink(shade(colour, 2)).box(bx, by + 2, 1, 8);
+        p.ink(shade(colour, -2)).box(bx + 4, by + 2, 1, 8);
+        p.ink(shade(colour, -1)).box(bx + 1, by, 3, 1);
+      }
     }
 
     // Mirror and a dead beer sign.
-    p.ink(C.slate).box(256, 44, 30, 34);
-    p.ink(C.teal).outline(256, 44, 30, 34);
-    p.ink(C.grey).line(259, 47, 283, 71);
-    p.ink(C.navy).box(34, 42, 32, 20);
-    p.ink(C.blue).outline(34, 42, 32, 20);
-    p.ink(C.slate).line(38, 52, 62, 52);
+    p.slab(254, 42, 34, 38, C.woodDim, 1);
+    p.ink(C.slateDim).box(257, 45, 28, 32);
+    p.sweep(257, 45, 28, 32, 1, -1);
+    p.ink(C.steel).line(260, 48, 282, 70);
+    p.slab(32, 40, 34, 22, C.navy, 1);
+    p.ink(C.blueLit).outline(35, 43, 28, 16);
+    p.ink(C.bluePale).line(38, 51, 60, 51);
 
     // ---- the counter ------------------------------------------------------
-    p.ink(C.brown).box(32, 92, 256, 12);
-    p.ink(C.yellow).line(32, 92, 287, 92);
-    p.ink(C.black).line(32, 104, 287, 104);
-    p.ink(C.brown).box(32, 104, 256, 14);
-    p.ink(C.black).box(32, 118, 256, 4);
-    p.ink(C.maroon);
-    for (let x = 40; x < 288; x += 16) p.line(x, 106, x, 116);
+    // Lit along its top edge, which is what makes it read as a solid mass in
+    // front of the bartender rather than a brown stripe.
+    p.slab(30, 88, 260, 10, C.brownLit, 1);
+    p.ink(C.tan).box(30, 88, 260, 2);
+    p.slab(32, 98, 256, 22, C.woodDim, 1);
+    p.sweep(32, 98, 256, 22, 0, -1);
+    p.ink(C.woodDeep);
+    for (let x = 44; x < 288; x += 18) p.line(x, 100, x, 118);
+    p.contact(30, 98, 260, 8, -2);
 
     // The counter sits in front of anyone standing behind it.
-    p.saved((q) => q.noInk().noWalk().depth(11).box(32, 92, 256, 30));
+    p.saved((q) => q.noInk().noWalk().depth(11).box(30, 88, 260, 32));
 
     // Beer taps and a bowl of something salted.
-    p.ink(C.slate);
-    for (const tx of [120, 128, 136]) p.box(tx, 84, 3, 8);
-    p.ink(C.grey).box(116, 82, 26, 3);
-    p.ink(C.white).solid([196, 92, 214, 92, 211, 86, 199, 86]);
-
-    // ---- door to the back -------------------------------------------------
-    p.ink(C.black).box(6, 58, 24, 62);
-    p.ink(C.brown).outline(4, 56, 28, 64);
-    p.ink(C.slate).line(8, 60, 8, 118);
-    p.ink(C.yellow).dot(27, 90).dot(28, 90);
+    for (const tx of [120, 128, 136]) p.slab(tx, 80, 4, 9, C.pewter, 1);
+    p.slab(115, 77, 28, 4, C.silver, 1);
+    p.ink(C.ivory).solid([196, 88, 214, 88, 211, 82, 199, 82]);
+    p.ink(C.khaki).line(199, 83, 210, 83);
 
     // ---- floor ------------------------------------------------------------
-    p.checkerFloor(122, p.height, 160, C.slate, C.black, 14, 6);
+    p.floorPlane(FLOOR, p.height, C.brown, 160, 11);
 
     // Stools go on after the floor, or the floor paints over them.
-    for (const sx of [56, 96, 136, 176, 216, 256]) {
-      p.ink(C.maroon).box(sx - 10, 122, 20, 4);
-      p.ink(C.red).line(sx - 10, 122, sx + 9, 122);
-      p.ink(C.black).line(sx - 10, 125, sx + 9, 125);
-      p.ink(C.slate).box(sx - 2, 126, 4, 18);
-      p.ink(C.black).box(sx - 8, 144, 16, 3);
+    for (const sx of [58, 100, 142, 184, 226, 266]) {
+      p.ink(C.crimson).solid([sx - 11, 124, sx + 11, 124, sx + 9, 130, sx - 9, 130]);
+      p.ink(C.redLit).line(sx - 11, 124, sx + 10, 124);
+      p.ink(C.maroonDeep).line(sx - 9, 130, sx + 8, 130);
+      p.slab(sx - 2, 130, 5, 20, C.pewter, 1);
+      p.ink(C.asphaltDeep).box(sx - 8, 149, 16, 3);
     }
 
-    p.depthRamp(122, p.height, 6, 14);
-    p.blockRect(0, 0, p.width, 122);
-    // Leave a way through to the back door.
-    p.saved((q) => q.noInk().noDepth().walk(0).box(4, 118, 30, 12));
+    p.vignette(-1);
+    p.depthRamp(FLOOR, p.height, 6, 14);
+    doorways(p, DOORS);
+    walls(p, FLOOR, DOORS);
+    // The bar itself is solid; you cannot walk through it to the bottles.
+    p.blockRect(30, 88, 260, 30);
+    for (const sx of [58, 100, 142, 184, 226, 266]) p.blockRect(sx - 11, 122, 22, 10);
   });
 
 const BARTENDER = new Actor({
@@ -116,10 +149,13 @@ export const insideBar: RoomDef = {
   title: "Lefty's Bar",
   scene: insideBarScene,
 
+  horizon: FLOOR,
+  scaleAtHorizon: 0.6,
+
   entries: {
-    default: { x: 160, y: 152, facing: 'back' },
-    [RoomId.OutsideBar]: { x: 160, y: 158, facing: 'back' },
-    [RoomId.BarHallway]: { x: 30, y: 128, facing: 'right' },
+    default: { x: 168, y: 150, facing: 'back' },
+    [RoomId.OutsideBar]: { x: 160, y: 150, facing: 'back' },
+    [RoomId.BarHallway]: { x: 44, y: 136, facing: 'right' },
   },
 
   describe:
@@ -167,10 +203,7 @@ export const insideBar: RoomDef = {
     },
   ],
 
-  exits: [
-    { x: 128, y: 162, w: 64, h: 6, to: RoomId.OutsideBar },
-    { x: 0, y: 118, w: 22, h: 16, to: RoomId.BarHallway },
-  ],
+  exits: exitsOf(DOORS),
 
   onCommand(g, cmd) {
     const buyingDrink =

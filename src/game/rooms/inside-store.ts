@@ -1,8 +1,17 @@
 import { paint } from '../../engine/scene.js';
 import { C, darker } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { Actor } from '../../engine/actor.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
+
+
+/** Where the floor meets the back of the room. */
+const FLOOR = 122;
+
+const DOORS: readonly Doorway[] = [
+  { to: RoomId.OutsideStore, label: 'Street', side: 'right', y: 148, w: 36 },
+];
 
 /**
  * The all-night liquor store. Strip lighting, four aisles, and a proprietor
@@ -75,7 +84,8 @@ export const insideStoreScene = () =>
     p.ink(C.slate).outline(286, 122, 34, 46);
 
     p.depthRamp(122, p.height, 6, 14);
-    p.blockRect(0, 0, p.width, 122);
+    doorways(p, DOORS);
+    walls(p, FLOOR, DOORS);
     p.blockRect(0, 122, 132, 10);
     p.blockRect(236, 118, 76, 8);
   });
@@ -102,6 +112,9 @@ export const insideStore: RoomDef = {
   id: RoomId.InsideStore,
   title: 'The Liquor Store',
   scene: insideStoreScene,
+
+  horizon: 122,
+  scaleAtHorizon: 0.72,
 
   entries: {
     default: { x: 250, y: 150, facing: 'left' },
@@ -134,7 +147,7 @@ export const insideStore: RoomDef = {
     { noun: 'shelves', synonyms: ['bottles', 'liquor', 'stock'], look: 'Every bottle this town has a use for, and several it does not.' },
   ],
 
-  exits: [{ x: 292, y: 128, w: 28, h: 40, to: RoomId.OutsideStore }],
+  exits: exitsOf(DOORS),
 
   onCommand(g, cmd) {
     const buy = (item: string) =>

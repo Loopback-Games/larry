@@ -1,8 +1,28 @@
 import { paint } from '../../engine/scene.js';
 import { C, darker } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { Actor } from '../../engine/actor.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
+
+
+/** Where the floor meets the back of the room. */
+const FLOOR = 126;
+
+const DOORS: readonly Doorway[] = [
+  { to: RoomId.BarBackroom, label: 'Landing', side: 'left', y: 150, w: 30 },
+  {
+    to: RoomId.Alley,
+    label: 'Fire escape',
+    side: 'right',
+    y: 146,
+    w: 32,
+    when: (g) =>
+      g.hasAwarded('went-to-bed')
+        ? true
+        : 'You have not finished what you came up here for.',
+  },
+];
 
 /**
  * The room at the top of the stairs. Red light, a bed, and a window that opens
@@ -63,7 +83,8 @@ export const hookerRoomScene = () =>
     p.ink(C.yellow).dot(22, 86);
 
     p.depthRamp(126, p.height, 6, 14);
-    p.blockRect(0, 0, p.width, 126);
+    doorways(p, DOORS);
+    walls(p, FLOOR, DOORS);
     p.blockRect(56, 122, 176, 12);
   });
 
@@ -90,9 +111,12 @@ export const hookerRoom: RoomDef = {
   title: 'Upstairs Room',
   scene: hookerRoomScene,
 
+  horizon: 126,
+  scaleAtHorizon: 0.7,
+
   entries: {
-    default: { x: 40, y: 150, facing: 'right' },
-    [RoomId.BarBackroom]: { x: 34, y: 150, facing: 'right' },
+    default: { x: 56, y: 152, facing: 'right' },
+    [RoomId.BarBackroom]: { x: 42, y: 152, facing: 'right' },
   },
 
   describe:
@@ -129,17 +153,7 @@ export const hookerRoom: RoomDef = {
     { noun: 'lamp', look: 'A lamp with a pink scarf over the shade. Romantic, and a fire risk.' },
   ],
 
-  exits: [
-    { x: 0, y: 132, w: 20, h: 30, to: RoomId.BarBackroom },
-    {
-      x: 286, y: 128, w: 34, h: 34,
-      to: RoomId.Alley,
-      when: (g) =>
-        g.hasAwarded('went-to-bed')
-          ? true
-          : 'You have not finished being here yet.',
-    },
-  ],
+  exits: exitsOf(DOORS),
 
   onCommand(g, cmd) {
     if (cmd.is('wear', ItemId.Condom) || cmd.is('use', ItemId.Condom)) {

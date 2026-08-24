@@ -1,8 +1,16 @@
 import { paint } from '../../engine/scene.js';
 import { C, darker } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { Actor } from '../../engine/actor.js';
 import { RoomId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
+
+/** Where the floor meets the back of the room. */
+const FLOOR = 110;
+
+const DOORS: readonly Doorway[] = [
+  { to: RoomId.OutsideChapel, label: 'Outside', side: 'front', x: 160, w: 48 },
+];
 
 /** Inside the chapel: six pews, a minister, and an organ playing itself. */
 export const insideChapelScene = () =>
@@ -52,7 +60,8 @@ export const insideChapelScene = () =>
     p.ink(darker(C.brown)).line(0, 122, p.width - 1, 122);
 
     p.depthRamp(108, p.height, 5, 14);
-    p.blockRect(0, 0, p.width, 110);
+    doorways(p, DOORS);
+    walls(p, FLOOR, DOORS);
     p.blockRect(0, 110, 126, 58);
     p.blockRect(194, 110, 126, 58);
   });
@@ -81,9 +90,12 @@ export const insideChapel: RoomDef = {
   title: 'The Chapel',
   scene: insideChapelScene,
 
+  horizon: 110,
+  scaleAtHorizon: 0.62,
+
   entries: {
-    default: { x: 160, y: 162, facing: 'back' },
-    [RoomId.OutsideChapel]: { x: 160, y: 158, facing: 'back' },
+    default: { x: 160, y: 154, facing: 'back' },
+    [RoomId.OutsideChapel]: { x: 160, y: 152, facing: 'back' },
   },
 
   describe:
@@ -126,7 +138,7 @@ export const insideChapel: RoomDef = {
     { noun: 'window', synonyms: ['stained glass', 'glass'], look: 'A stained-glass window depicting, on close inspection, two rings and a slot machine.' },
   ],
 
-  exits: [{ x: 126, y: 164, w: 68, h: 4, to: RoomId.OutsideChapel }],
+  exits: exitsOf(DOORS),
 
   onEnter(g) {
     if (g.flag('fawnReady') && !g.flag('married') && !g.flag('atAltar')) {

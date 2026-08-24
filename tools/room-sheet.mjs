@@ -1,7 +1,7 @@
 // Dev utility: render every room's art to one contact sheet for review.
 import { writeFileSync } from 'node:fs';
 import { ROOMS } from '../src/game/rooms/index.ts';
-import { EGA_RGB } from '../src/engine/palette.ts';
+import { PALETTE_RGB } from '../src/engine/palette.ts';
 import { Painter } from '../src/engine/scene.ts';
 import { drawFigure } from '../src/engine/figure.ts';
 import { LARRY_STYLE } from '../src/game/index.ts';
@@ -27,7 +27,7 @@ ROOMS.forEach((room, i) => {
   for (let y = 0; y < RH; y++)
     for (let x = 0; x < RW; x++) {
       const v = src[y * RW + x];
-      const [r, g, b] = plane === 'colour' ? EGA_RGB[v] : EGA_RGB[(v * 3) % 16];
+      const [r, g, b] = plane === 'colour' ? PALETTE_RGB[v] : PALETTE_RGB[(v * 3) % PALETTE_RGB.length];
       const o = ((oy + y) * W + ox + x) * 3;
       buf[o] = r; buf[o + 1] = g; buf[o + 2] = b;
     }

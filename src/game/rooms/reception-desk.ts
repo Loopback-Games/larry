@@ -1,8 +1,27 @@
 import { paint } from '../../engine/scene.js';
 import { C, darker } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { Actor } from '../../engine/actor.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
+
+/** Where the floor meets the back of the room. */
+const FLOOR = 120;
+
+const DOORS: readonly Doorway[] = [
+  {
+    to: RoomId.Elevator,
+    label: 'Lift',
+    side: 'back',
+    x: 64,
+    y: FLOOR,
+    w: 44,
+    h: 48,
+    kind: 'double',
+    colour: C.gold,
+    through: C.charcoal,
+  },
+];
 
 /**
  * The eighth floor. One desk, one receptionist, and the button that releases
@@ -55,7 +74,8 @@ export const receptionDeskScene = () =>
     p.ink(C.cyan).line(0, 120, p.width - 1, 120);
 
     p.depthRamp(120, p.height, 6, 14);
-    p.blockRect(0, 0, p.width, 120);
+    doorways(p, DOORS);
+    walls(p, FLOOR, DOORS);
     p.blockRect(166, 118, 154, 14);
   });
 
@@ -85,9 +105,12 @@ export const receptionDesk: RoomDef = {
   title: 'Eighth Floor',
   scene: receptionDeskScene,
 
+  horizon: 120,
+  scaleAtHorizon: 0.7,
+
   entries: {
-    default: { x: 155, y: 140, facing: 'front' },
-    [RoomId.Elevator]: { x: 155, y: 132, facing: 'front' },
+    default: { x: 150, y: 144, facing: 'left' },
+    [RoomId.Elevator]: { x: 64, y: 132, facing: 'front' },
   },
 
   describe:
@@ -118,7 +141,7 @@ export const receptionDesk: RoomDef = {
     { noun: 'water', synonyms: ['glass', 'glass of water'], look: 'A glass of water beside her, mostly full.' },
   ],
 
-  exits: [{ x: 126, y: 120, w: 58, h: 10, to: RoomId.Elevator }],
+  exits: exitsOf(DOORS),
 
   onCommand(g, cmd) {
     const givingPills =

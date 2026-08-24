@@ -1,9 +1,30 @@
 import { paint } from '../../engine/scene.js';
 import { C, darker } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { Actor } from '../../engine/actor.js';
 import { WALK_FREE } from '../../constants.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
+
+
+/** Where the floor meets the back of the room. */
+const FLOOR = 130;
+
+const DOORS: readonly Doorway[] = [
+  { to: RoomId.BarHallway, label: 'Corridor', side: 'left', y: 152, w: 30 },
+  {
+    to: RoomId.HookerRoom,
+    label: 'Upstairs',
+    side: 'right',
+    y: 22,
+    w: 28,
+    when: (g) =>
+      g.flag('heavyDistracted')
+        ? true
+        : 'The heavy at the foot of the stairs looks at you the way a wall ' +
+          'looks at weather.',
+  },
+];
 
 /**
  * The storeroom. Crates, a staircase, a television showing nothing, and a very
@@ -61,7 +82,8 @@ export const barBackroomScene = () =>
     p.ink(C.black).box(0, 130, 26, 8);
 
     p.depthRamp(130, p.height, 6, 14);
-    p.blockRect(0, 0, p.width, 130);
+    doorways(p, DOORS);
+    walls(p, FLOOR, DOORS);
     p.blockRect(0, 130, 8, 12);
     p.blockRect(186, 128, 134, 16);
 
@@ -102,10 +124,13 @@ export const barBackroom: RoomDef = {
   title: 'The Storeroom',
   scene: barBackroomScene,
 
+  horizon: 118,
+  scaleAtHorizon: 0.56,
+
   entries: {
-    default: { x: 60, y: 150, facing: 'right' },
-    [RoomId.BarHallway]: { x: 30, y: 148, facing: 'right' },
-    [RoomId.HookerRoom]: { x: 200, y: 150, facing: 'left' },
+    default: { x: 74, y: 154, facing: 'right' },
+    [RoomId.BarHallway]: { x: 40, y: 152, facing: 'right' },
+    [RoomId.HookerRoom]: { x: 250, y: 150, facing: 'left' },
   },
 
   describe:
@@ -139,18 +164,7 @@ export const barBackroom: RoomDef = {
     { noun: 'crates', synonyms: ['crate', 'boxes', 'box'], look: 'Beer crates, mostly empty, stacked by someone with no interest in stacking.' },
   ],
 
-  exits: [
-    { x: 0, y: 142, w: 22, h: 24, to: RoomId.BarHallway },
-    {
-      x: 292, y: 10, w: 28, h: 24,
-      to: RoomId.HookerRoom,
-      when: (g) =>
-        g.flag('heavyDistracted')
-          ? true
-          : 'The large man puts out an arm without looking away from the screen. ' +
-            'The arm is not negotiable.',
-    },
-  ],
+  exits: exitsOf(DOORS),
 
   onCommand(g, cmd) {
     const usingRemote =

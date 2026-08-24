@@ -11,6 +11,7 @@ import {
 } from './raster.js';
 import type { Pen } from './raster.js';
 import { CANVAS_W, CANVAS_H, WALK_BLOCKED } from '../constants.js';
+import { shade } from './palette.js';
 import { rng, randInt } from './rng.js';
 import { glyphPixel, GLYPH_W, GLYPH_H } from './font.js';
 
@@ -274,6 +275,171 @@ export class Painter {
           if (falloff * strength > threshold) p.ink(colour).dot(x, y);
         }
       }
+    });
+  }
+
+  // ---- light and form ----------------------------------------------------
+
+  /**
+   * Shift pixels that are already painted along their own colour ramps.
+   *
+   * This is the workhorse behind every lighting effect here. Because each hue
+   * owns a run of palette indices, "darken this region" is a meaningful
+   * operation on arbitrary artwork: the wood stays wood and the brick stays
+   * brick, they just fall into shadow. Fractional steps are dithered, so a
+   * gentle falloff does not band.
+   */
+  relight(x: number, y: number, w: number, h: number, steps: number): this {
+    const whole = Math.trunc(steps);
+    const frac = Math.abs(steps - whole);
+    const extra = steps < 0 ? whole - 1 : whole + 1;
+    for (let py = y; py < y + h; py++) {
+      for (let px = x; px < x + w; px++) {
+        if (!this.surface.inside(px, py)) continue;
+        const i = this.surface.index(px, py);
+        const current = this.surface.colour[i];
+        if (current === 0) continue;
+        const threshold = (BAYER[py & 3][px & 3] + 0.5) / 16;
+        this.surface.colour[i] = shade(current, frac > threshold ? extra : whole);
+      }
+    }
+    return this;
+  }
+
+  /**
+   * A smooth vertical shade across already-painted pixels.
+   *
+   * Prefer this to `gradient` on any large surface. `gradient` dithers between
+   * two fixed inks, which over a big area reads as sandpaper; this steps
+   * through the colour's own ramp, so the intermediate tones are real and only
+   * the fractional part is dithered.
+   */
+  sweep(x: number, y: number, w: number, h: number, from: number, to: number, blend = 3): this {
+    for (let py = 0; py < h; py++) {
+      const t = h <= 1 ? 1 : py / (h - 1);
+      const value = from + (to - from) * t;
+      const step = Math.round(value);
+      // Dither only in a narrow band either side of each step boundary.
+      // Dithering every row instead turns a gradient into sandpaper, which is
+      // what the flat art was doing wrong in the first place.
+      const rows = Math.abs(to - from) < 1e-6 ? h : h / Math.abs(to - from);
+      const distance = Math.abs(value - step) * rows;
+      this.relight(x, y + py, w, 1, distance < blend ? value : step);
+    }
+    return this;
+  }
+
+  /**
+   * Ambient occlusion: a soft dark band where two surfaces meet.
+   *
+   * Nothing does more for readability per line of code. Without it a floor and
+   * the wall behind it are two abutting fields of colour and the eye cannot
+   * tell which is which; with it the junction reads as a corner.
+   */
+  contact(x: number, y: number, w: number, h: number, steps = -2): this {
+    for (let py = 0; py < h; py++) {
+      const falloff = 1 - py / h;
+      const value = steps * falloff * falloff;
+      const step = Math.round(value);
+      // Banded like `sweep`, for the same reason: a per-row dither over a wide
+      // surface reads as grain rather than as shadow.
+      const next = Math.abs(steps) * (1 - ((py + 1) / h) ** 2);
+      this.relight(x, y + py, w, 1, Math.abs(Math.abs(value) - next) > 0.34 ? value : step);
+    }
+    return this;
+  }
+
+  /**
+   * A box with form: lit along the top and left, shadowed along the bottom and
+   * right, so it reads as a solid object rather than a coloured rectangle.
+   *
+   * The light is treated as coming from the upper left everywhere in the game.
+   * Keeping that consistent is most of what makes a scene look coherent.
+   */
+  slab(x: number, y: number, w: number, h: number, colour: number, bevel = 1): this {
+    return this.saved((p) => {
+      p.ink(colour).box(x, y, w, h);
+      if (w < 3 || h < 3) return;
+      p.ink(shade(colour, bevel));
+      p.box(x, y, w, 1).box(x, y, 1, h);
+      p.ink(shade(colour, -bevel));
+      p.box(x, y + h - 1, w, 1).box(x + w - 1, y, 1, h);
+      p.ink(shade(colour, -bevel * 2)).dot(x + w - 1, y).dot(x, y + h - 1);
+    });
+  }
+
+  /**
+   * A pool of light on whatever is already painted, falling off elliptically.
+   * Used for lamps, spotlights and the wash a doorway throws onto a pavement.
+   */
+  lightPool(cx: number, cy: number, rx: number, ry: number, steps = 1): this {
+    for (let py = -ry; py <= ry; py++) {
+      for (let px = -rx; px <= rx; px++) {
+        const d = Math.sqrt((px / rx) ** 2 + (py / ry) ** 2);
+        if (d > 1) continue;
+        this.relight(cx + px, cy + py, 1, 1, steps * (1 - d * d));
+      }
+    }
+    return this;
+  }
+
+  /**
+   * Darken the edges of the frame. Pulls the eye to the middle of the picture
+   * and stops large flat surfaces reading as blank.
+   */
+  vignette(steps = -1): this {
+    const cx = this.width / 2;
+    const cy = this.height / 2;
+    const at = (x: number, y: number) => {
+      const d = Math.sqrt(((x - cx) / cx) ** 2 + ((y - cy) / cy) ** 2);
+      return d < 0.62 ? 0 : steps * Math.min(1, (d - 0.62) / 0.5);
+    };
+    for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
+        const value = at(x, y);
+        if (value === 0) continue;
+        // Dither only where a neighbouring pixel would land on a different
+        // ramp step, so the bands blend but the flat parts stay flat.
+        const edge =
+          Math.round(at(x + 2, y)) !== Math.round(value) ||
+          Math.round(at(x, y + 2)) !== Math.round(value);
+        this.relight(x, y, 1, 1, edge ? value : Math.round(value));
+      }
+    }
+    return this;
+  }
+
+  /**
+   * A receding floor: darker and cooler at the back, lit towards the camera,
+   * with perspective seams converging on a vanishing point.
+   *
+   * Replaces the habit of scattering repeated texture over the whole floor,
+   * which fills the area with detail but tells the eye nothing about depth.
+   */
+  floorPlane(
+    yTop: number,
+    yBottom: number,
+    colour: number,
+    vanishX = this.width / 2,
+    seams = 9,
+  ): this {
+    return this.saved((p) => {
+      const h = yBottom - yTop;
+      p.ink(colour).box(0, yTop, p.width, h);
+      // Shadowed at the back, catching the light as it comes towards us.
+      p.sweep(0, yTop, p.width, h, -1, 1);
+      // Seams fan out from the vanishing point, spaced wider as they near us.
+      p.ink(shade(colour, -2));
+      for (let i = 0; i <= seams; i++) {
+        const t = (i / seams - 0.5) * 2;
+        p.line(vanishX + t * p.width * 0.22, yTop, vanishX + t * p.width * 2.4, yBottom);
+      }
+      // Boards running across, on the same non-linear recession as the seams.
+      for (let r = 1; r < 6; r++) {
+        const y = yTop + h * Math.pow(r / 6, 1.7);
+        p.ink(shade(colour, -2)).line(0, y, p.width - 1, y);
+      }
+      p.contact(0, yTop, p.width, Math.min(12, h), -2);
     });
   }
 

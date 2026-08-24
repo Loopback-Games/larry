@@ -81,53 +81,29 @@ export function pathTo(g: Game, target: Point): Point[] | null {
 }
 
 /**
- * Walk the ego to a point by steering, one tick at a time, exactly as a player
- * holding the movement keys would. Returns false if it never arrives.
+ * Walk the ego to a point, one tick at a time, driving the same route follower
+ * the game uses when the player taps the scene.
+ *
+ * This deliberately exercises the engine's own pathfinding rather than a copy
+ * of it: an earlier version planned its own route at one pixel per node while
+ * the ego moved two, so it oscillated around every waypoint and reported
+ * thirty-six broken connections that were not broken.
  */
-export function walkTo(g: Game, target: Point, maxTicks = 800): boolean {
-  const path = pathTo(g, target);
-  if (!path) return false;
-
+export function walkTo(g: Game, target: Point, maxTicks = 600): boolean {
   const roomAtStart = g.roomId;
-  const goal = path[path.length - 1];
-  let index = 0;
-  let stalledFor = 0;
-  let last = { x: g.ego.x, y: g.ego.y };
+  const goal = { x: Math.round(target.x), y: Math.round(target.y) };
+  if (!g.walkEgoTo(goal.x, goal.y)) return false;
 
   for (let tick = 0; tick < maxTicks; tick++) {
-    if (g.roomId !== roomAtStart) {
-      g.steer(0, 0);
-      return true; // walked into a doorway
-    }
+    if (g.roomId !== roomAtStart) return true; // walked into a doorway
     const at = { x: Math.round(g.ego.x), y: Math.round(g.ego.y) };
-    if (at.x === goal.x && at.y === goal.y) {
-      g.steer(0, 0);
-      return true;
-    }
-
-    // The ego covers more than one pixel per tick, so it lands between path
-    // nodes. Advance past everything already reached rather than looking for an
-    // exact match, or the waypoint ends up behind us and the walk oscillates.
-    while (
-      index < path.length - 1 &&
-      Math.abs(path[index].x - at.x) <= g.ego.speed &&
-      Math.abs(path[index].y - at.y) <= g.ego.speed
-    ) {
-      index++;
-    }
-
-    const next = path[index];
-    g.steer(Math.sign(next.x - at.x), Math.sign(next.y - at.y));
+    if (at.x === goal.x && at.y === goal.y) return true;
+    if (!g.walking) return false; // the route ran out without arriving
     g.tick();
     while (g.dismissMessage()) {
       /* clear anything the move triggered */
     }
-
-    stalledFor = g.ego.x === last.x && g.ego.y === last.y ? stalledFor + 1 : 0;
-    if (stalledFor > 12) break;
-    last = { x: g.ego.x, y: g.ego.y };
   }
-  g.steer(0, 0);
   return false;
 }
 

@@ -1,7 +1,16 @@
 import { paint } from '../../engine/scene.js';
 import { C, darker } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
+
+
+/** Where the floor meets the back of the room. */
+const FLOOR = 130;
+
+const DOORS: readonly Doorway[] = [
+  { to: RoomId.OutsideBar, label: 'Street', side: 'right', y: 150, w: 34 },
+];
 
 /**
  * The alley behind Lefty's. A dumpster, a boarded-up dispensary window, and a
@@ -62,7 +71,8 @@ export const alleyScene = () =>
     p.ink(C.white).dots([70, 154, 88, 157]);
 
     p.depthRamp(130, p.height, 5, 14);
-    p.blockRect(0, 0, p.width, 130);
+    doorways(p, DOORS);
+    walls(p, FLOOR, DOORS);
     p.blockRect(118, 126, 120, 14);
   });
 
@@ -71,10 +81,13 @@ export const alley: RoomDef = {
   title: 'The Alley',
   scene: alleyScene,
 
+  horizon: 130,
+  scaleAtHorizon: 0.68,
+
   entries: {
-    default: { x: 40, y: 150, facing: 'front' },
-    [RoomId.HookerRoom]: { x: 74, y: 146, facing: 'front' },
-    [RoomId.OutsideBar]: { x: 296, y: 150, facing: 'left' },
+    default: { x: 56, y: 152, facing: 'right' },
+    [RoomId.HookerRoom]: { x: 82, y: 148, facing: 'front' },
+    [RoomId.OutsideBar]: { x: 286, y: 152, facing: 'left' },
   },
 
   describe:
@@ -109,7 +122,7 @@ export const alley: RoomDef = {
     { noun: 'puddle', look: 'You choose not to think about the puddle.' },
   ],
 
-  exits: [{ x: 300, y: 132, w: 20, h: 34, to: RoomId.OutsideBar }],
+  exits: exitsOf(DOORS),
 
   onCommand(g, cmd) {
     if (

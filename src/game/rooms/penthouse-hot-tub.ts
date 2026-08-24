@@ -1,8 +1,16 @@
 import { paint } from '../../engine/scene.js';
 import { C, darker } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { Actor } from '../../engine/actor.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
+
+/** Where the floor meets the back of the room. */
+const FLOOR = 90;
+
+const DOORS: readonly Doorway[] = [
+  { to: RoomId.PenthouseLounge, label: 'Lounge', side: 'right', y: 152, w: 30 },
+];
 
 /**
  * The terrace, the hot tub, and Eve. This is the last room, and the last four
@@ -61,7 +69,8 @@ export const penthouseHotTubScene = () =>
     p.ink(C.brown).path([300, 0, 296, 30, 300, 60, 294, 88]);
 
     p.depthRamp(90, p.height, 6, 14);
-    p.blockRect(0, 0, p.width, 90);
+    doorways(p, DOORS);
+    walls(p, FLOOR, DOORS);
     p.blockRect(52, 104, 216, 50);
     p.blockRect(14, 86, 26, 28);
     p.blockRect(284, 86, 26, 28);
@@ -90,6 +99,9 @@ export const penthouseHotTub: RoomDef = {
   id: RoomId.PenthouseHotTub,
   title: 'The Terrace',
   scene: penthouseHotTubScene,
+
+  horizon: 90,
+  scaleAtHorizon: 0.56,
 
   entries: {
     default: { x: 292, y: 150, facing: 'left' },
@@ -121,7 +133,7 @@ export const penthouseHotTub: RoomDef = {
     { noun: 'palms', synonyms: ['palm', 'plants', 'pots'], look: 'Two palms in pots, doing well for this altitude.' },
   ],
 
-  exits: [{ x: 296, y: 140, w: 24, h: 28, to: RoomId.PenthouseLounge }],
+  exits: exitsOf(DOORS),
 
   onEnter(g) {
     if (!g.flag('metEve')) {

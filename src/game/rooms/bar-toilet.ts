@@ -1,10 +1,19 @@
 import { paint } from '../../engine/scene.js';
 import { C, darker } from '../../engine/palette.js';
+import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
 
 /** The number scrawled on the wall here opens up the rest of the night. */
 export const HOTLINE_NUMBER = '555-6969';
+
+
+/** Where the floor meets the back of the room. */
+const FLOOR = 128;
+
+const DOORS: readonly Doorway[] = [
+  { to: RoomId.BarHallway, label: 'Corridor', side: 'right', y: 148, w: 32 },
+];
 
 /**
  * The washroom at Lefty's. One stall, one basin, and a wall that functions as
@@ -66,7 +75,8 @@ export const barToiletScene = () =>
     p.ink(C.yellow).dot(292, 84);
 
     p.depthRamp(128, p.height, 6, 14);
-    p.blockRect(0, 0, p.width, 128);
+    doorways(p, DOORS);
+    walls(p, FLOOR, DOORS);
     p.blockRect(24, 128, 108, 8);
     p.blockRect(200, 128, 70, 6);
   });
@@ -76,9 +86,12 @@ export const barToilet: RoomDef = {
   title: 'The Washroom',
   scene: barToiletScene,
 
+  horizon: 128,
+  scaleAtHorizon: 0.7,
+
   entries: {
-    default: { x: 180, y: 150, facing: 'left' },
-    [RoomId.BarHallway]: { x: 290, y: 150, facing: 'left' },
+    default: { x: 200, y: 152, facing: 'left' },
+    [RoomId.BarHallway]: { x: 286, y: 150, facing: 'left' },
   },
 
   describe:
@@ -117,7 +130,7 @@ export const barToilet: RoomDef = {
     { noun: 'stall', synonyms: ['cubicle', 'partition'], look: 'A metal stall, unlocked.' },
   ],
 
-  exits: [{ x: 300, y: 130, w: 20, h: 30, to: RoomId.BarHallway }],
+  exits: exitsOf(DOORS),
 
   onCommand(g, cmd) {
     if (cmd.isAny('sit', 'toilet', 'seat') || cmd.isBare('sit')) {
