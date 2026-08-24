@@ -5,17 +5,20 @@
  * diff of draw calls and nothing about the result. CI runs this and uploads the
  * sheet, so an art change can actually be looked at.
  *
- *   npx vite-node tools/room-sheet.mjs [out.png] [colour|walk|depth]
+ *   node tools/room-sheet.mjs [out.png] [colour|walk|depth]
  */
 import { writeFileSync } from 'node:fs';
-import { ROOMS } from '../src/game/rooms/index.ts';
-import { PALETTE_RGB } from '../src/engine/palette.ts';
-import { createGame } from '../src/game/index.ts';
-import { CANVAS_W, CANVAS_H, WALK_BLOCKED } from '../src/constants.ts';
 import { encodePNG } from './png.mjs';
+import { withSource } from './load.mjs';
 
 const out = process.argv[2] ?? 'rooms.png';
 const plane = process.argv[3] ?? 'colour';
+
+await withSource(async (load) => {
+const { ROOMS } = await load('/src/game/rooms/index.ts');
+const { PALETTE_RGB } = await load('/src/engine/palette.ts');
+const { createGame } = await load('/src/game/index.ts');
+const { CANVAS_W, CANVAS_H, WALK_BLOCKED } = await load('/src/constants.ts');
 
 const COLS = 3;
 const PAD = 4;
@@ -82,3 +85,4 @@ ROOMS.forEach((room, i) => {
 
 writeFileSync(out, encodePNG(buf, W, H));
 console.log(`${ROOMS.length} rooms -> ${out} (${W}x${H}) plane=${plane}`);
+});
