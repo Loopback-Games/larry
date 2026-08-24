@@ -20,11 +20,39 @@ const git = (...args) =>
 const gitLoud = (...args) =>
   execFileSync('git', args, { stdio: 'inherit' });
 
+/**
+ * Refuse to publish without a configured committer.
+ *
+ * An earlier version invented a placeholder identity so a machine with no git
+ * config could still deploy. That was the wrong trade: it silently attributed
+ * commits to somebody who does not exist. Failing here costs one command and
+ * keeps the history honest.
+ */
+function requireIdentity() {
+  const read = (key) => {
+    try {
+      return git('config', key);
+    } catch {
+      return '';
+    }
+  };
+  if (read('user.name') && read('user.email')) return;
+
+  console.error('No git identity is configured for this repository.');
+  console.error('Set one first, for example:');
+  console.error('  git config-home     # napalm255 <napalm255@gmail.com>');
+  console.error('  git config-work');
+  console.error('or set user.name and user.email directly.');
+  process.exit(1);
+}
+
 function main() {
   if (!existsSync(DIST) || readdirSync(DIST).length === 0) {
     console.error('dist/ is empty. Run "npm run build" first.');
     process.exit(1);
   }
+
+  requireIdentity();
 
   const sha = git('rev-parse', '--short', 'HEAD');
   const branch = git('rev-parse', '--abbrev-ref', 'HEAD');
@@ -80,23 +108,9 @@ function main() {
   if (!dirty) {
     console.log('gh-pages is already up to date.');
   } else {
-    // The published branch records who ran the deploy. Fall back to a project
-    // identity so a machine with no global git config can still publish.
-    const identity = [];
-    const configured = (key) => {
-      try {
-        return git('config', key);
-      } catch {
-        return '';
-      }
-    };
-    if (!configured('user.name')) identity.push('-c', 'user.name=larry-deploy');
-    if (!configured('user.email')) {
-      identity.push('-c', 'user.email=larry-deploy@users.noreply.github.com');
-    }
     execFileSync(
       'git',
-      [...identity, 'commit', '-m', `deploy: build from ${branch} at ${sha}`],
+      ['commit', '-m', `deploy: build from ${branch} at ${sha}`],
       { cwd: WORKTREE, stdio: 'inherit' },
     );
     execFileSync('git', ['push', 'origin', BRANCH], { cwd: WORKTREE, stdio: 'inherit' });
