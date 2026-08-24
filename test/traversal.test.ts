@@ -196,6 +196,62 @@ describe('walking the map', () => {
     walkThrough(RoomId.OutsideStore);
   });
 
+  it('never lets scenery paint the player out', () => {
+    // The bar counter was given depth band 11 by hand while the floor in front
+    // of it ran 6 to 14, so anyone who walked within an arm's length of the bar
+    // had their head erased. Depth bands for standing scenery are read from the
+    // floor beneath them now; this is the net under that.
+    //
+    // Measured by rendering the same figure twice from the same spot, once
+    // with depth masking suppressed. Only occlusion differs between the two,
+    // so a pale suit on a pale floor is not mistaken for a vanished player.
+    const g = fresh();
+    const failures: string[] = [];
+
+    for (const room of ROOMS) {
+      if (room.cutscene || room.closeup) continue;
+      g.goTo(room.id);
+      while (g.dismissMessage());
+
+      const spots = [...reachable(g)];
+      if (spots.length === 0) continue;
+      const step = Math.max(1, Math.floor(spots.length / 40));
+
+      for (let i = 0; i < spots.length; i += step) {
+        const spot = spots[i];
+        g.ego.x = spot % CANVAS_W;
+        g.ego.y = Math.floor(spot / CANVAS_W);
+        g.ego.scale = g.scaleAt(g.ego.y);
+
+        // Band 15 is the "in front of everything" band, so nothing masks it.
+        g.ego.depthOverride = 15;
+        const unmasked = g.renderFrame().surface.colour.slice();
+        g.ego.depthOverride = undefined;
+        const masked = g.renderFrame().surface.colour;
+
+        g.ego.visible = false;
+        const empty = g.renderFrame().surface.colour.slice();
+        g.ego.visible = true;
+
+        let drawn = 0;
+        let erased = 0;
+        for (let px = 0; px < empty.length; px++) {
+          if (unmasked[px] === empty[px]) continue;
+          drawn++;
+          if (masked[px] === empty[px]) erased++;
+        }
+        if (drawn > 0 && erased / drawn > 0.4) {
+          failures.push(
+            `${room.id}: standing at ${Math.round(g.ego.x)},${Math.round(g.ego.y)} has ` +
+              `${Math.round((erased / drawn) * 100)}% of the player painted out by scenery`,
+          );
+          break;
+        }
+      }
+    }
+    expect(failures).toEqual([]);
+  });
+
   it('keeps the ego on screen and correctly scaled', () => {
     const g = fresh();
     const failures: string[] = [];

@@ -249,7 +249,14 @@ export function exitsOf(list: readonly Doorway[]): Exit[] {
   return list.map(exitOf);
 }
 
-/** Block everything above a floor line, then reopen each doorway's threshold. */
+/**
+ * Block everything above a floor line, then reopen each doorway's threshold.
+ *
+ * Call this last, after every other `blockRect`. Scenery that stands forward of
+ * the wall reaches below the floor line, and if it is marked solid afterwards
+ * it can seal a doorway it merely stands beside — which is what the bar counter
+ * did to the passage behind the bar.
+ */
 export function walls(p: Painter, floorY: number, list: readonly Doorway[]): void {
   p.saved((q) => q.noInk().noDepth().walk(WALK_BLOCKED).box(0, 0, CANVAS_W, floorY));
   for (const d of list) clearThreshold(p, d);

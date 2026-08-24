@@ -1,11 +1,14 @@
 import { paint } from '../../engine/scene.js';
 import { C, darker } from '../../engine/palette.js';
+import { personAt } from '../scale.js';
 import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
 
 /** Where the floor meets the back of the room. */
 const FLOOR = 116;
+/** Perspective, declared here so the furniture can be sized off the figure. */
+const AT_HORIZON = 0.66;
 
 const DOORS: readonly Doorway[] = [
   {
@@ -77,12 +80,15 @@ export const penthouseLoungeScene = () =>
     p.contact(96, 17, 154, 8, -2);
 
     // ---- sunken seating, under the glass -----------------------------------
-    p.ink(C.brown).solid([104, 94, 240, 94, 248, 116, 96, 116]);
-    p.sweep(96, 94, 152, 22, 1, -1);
-    p.ink(C.brownLit).line(104, 94, 239, 94);
-    p.ink(C.tan).box(110, 88, 128, 7);
-    p.slab(120, 82, 26, 8, C.cream, 1);
-    p.slab(196, 82, 26, 8, C.cream, 1);
+    // Seat height taken from the figure who would sit on it: a sofa back comes
+    // to about half the height of someone standing beside it.
+    const sofaBack = 116 - Math.round(personAt(116, FLOOR, AT_HORIZON) * 0.52);
+    p.ink(C.brown).solid([104, sofaBack, 240, sofaBack, 248, 116, 96, 116]);
+    p.sweep(96, sofaBack, 152, 116 - sofaBack, 1, -1);
+    p.ink(C.brownLit).line(104, sofaBack, 239, sofaBack);
+    p.ink(C.tan).box(110, sofaBack - 5, 128, 6);
+    p.slab(120, sofaBack - 10, 24, 7, C.cream, 1);
+    p.slab(198, sofaBack - 10, 24, 7, C.cream, 1);
     p.contact(96, 112, 152, 8, -2);
 
     // ---- a bar cart, because this is that kind of apartment ----------------
@@ -126,8 +132,8 @@ export const penthouseLounge: RoomDef = {
   title: 'The Penthouse',
   scene: penthouseLoungeScene,
 
-  horizon: 116,
-  scaleAtHorizon: 0.66,
+  horizon: FLOOR,
+  scaleAtHorizon: AT_HORIZON,
 
   entries: {
     default: { x: 212, y: 152, facing: 'front' },
