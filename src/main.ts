@@ -46,6 +46,11 @@ function boot(): void {
       get inventory() {
         return game.inventory;
       },
+      /** Where the player is standing leads, if anywhere. For browser tests. */
+      get exit() {
+        const e = game.exitUnderfoot;
+        return e ? { to: e.to, label: e.label } : null;
+      },
       get ego() {
         return { x: game.ego.x, y: game.ego.y, facing: game.ego.facing };
       },

@@ -188,8 +188,15 @@ export function paintDoorway(p: Painter, d: Doorway): void {
  */
 function paintFrontExit(p: Painter, d: Doorway): void {
   const e = exitOf(d);
-  p.relight(e.x - 6, e.y - 4, e.w + 12, e.h + 4, 1);
-  p.ink(d.colour ?? C.goldLit);
+  const mat = d.colour ?? C.woodDim;
+
+  // A strip laid down rather than a relight of what is already there: the
+  // lounge floor is black, and relighting black leaves nothing behind.
+  p.ink(shade(mat, -1)).box(e.x - 4, e.y - 2, e.w + 8, e.h + 2);
+  p.ink(mat).box(e.x - 2, e.y - 1, e.w + 4, e.h);
+  p.ink(shade(mat, 1)).box(e.x - 2, e.y - 1, e.w + 4, 1);
+
+  p.ink(d.spill ?? C.goldLit);
   const mid = e.x + e.w / 2;
   for (const dx of [-14, 0, 14]) {
     p.path([mid + dx - 5, CANVAS_H - 8, mid + dx, CANVAS_H - 3, mid + dx + 5, CANVAS_H - 8]);

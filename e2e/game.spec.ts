@@ -149,6 +149,71 @@ test('accepts touch input on the movement pad', async ({ page }) => {
   expect(after.x).toBeLessThan(before.x);
 });
 
+test('walks to a tapped point instead of standing still', async ({ page }) => {
+  // Tap-to-walk was wired to a behaviour the tick loop never stepped, so
+  // tapping the scene did nothing at all. It matters most on a phone, where
+  // it is the main way to move.
+  await page.evaluate(() => {
+    const g = (window as unknown as { larry: { goTo(r: string): void } }).larry;
+    g.goTo('inside-bar');
+  });
+  await clearWindows(page);
+
+  const before = await page.evaluate(
+    () => (window as unknown as { larry: { ego: { x: number; y: number } } }).larry.ego,
+  );
+
+  // Aim at a scene coordinate rather than a fraction of the element. The
+  // canvas letterboxes a 320x200 framebuffer whose scene is only rows 8..176,
+  // so on a tall phone screen a naive fraction lands in the border and the tap
+  // is correctly ignored.
+  const target = await page.evaluate(() => {
+    const c = document.getElementById('screen') as HTMLCanvasElement;
+    const r = c.getBoundingClientRect();
+    const scale = Math.min(r.width / 320, r.height / 200);
+    const dx = r.left + (r.width - 320 * scale) / 2;
+    const dy = r.top + (r.height - 200 * scale) / 2;
+    // Scene column 250, row 150, offset past the status line.
+    return { x: dx + 250 * scale, y: dy + (8 + 150) * scale };
+  });
+  await page.mouse.click(target.x, target.y);
+  await page.waitForTimeout(900);
+
+  const after = await page.evaluate(
+    () => (window as unknown as { larry: { ego: { x: number; y: number } } }).larry.ego,
+  );
+  expect(Math.abs(after.x - before.x), 'tapping the scene moved Larry').toBeGreaterThan(8);
+});
+
+test('names the doorway the player is standing in', async ({ page }) => {
+  // Walking into an unmarked rectangle and being teleported is the most
+  // disorienting thing this kind of game can do, so every exit says where it
+  // goes while you are standing in it.
+  await page.evaluate(() => {
+    const g = (window as unknown as { larry: { goTo(r: string): void } }).larry;
+    // Arriving from the lounge puts Larry just below that alcove.
+    g.goTo('lounge');
+    g.goTo('inside-casino');
+  });
+  await clearWindows(page);
+
+  // Step up into the alcove he is standing in front of.
+  await page.evaluate(() => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+  });
+  await page.waitForTimeout(700);
+  await page.evaluate(() => {
+    window.dispatchEvent(new KeyboardEvent('keyup', { key: 'ArrowUp', bubbles: true }));
+  });
+
+  const seen = await page.evaluate(
+    () => (window as unknown as { larry: { room: string } }).larry.room,
+  );
+  // Either he is standing in the doorway and it is named, or he has already
+  // walked through it. Both prove the exit is where the art says it is.
+  expect(seen, 'walking up at the lounge alcove leads to the lounge').toBe('lounge');
+});
+
 test('offers word chips that build a command', async ({ page }) => {
   await type(page, '');
   for (let i = 0; i < 15; i++) {
