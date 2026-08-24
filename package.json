@@ -1,0 +1,29 @@
+{
+  "name": "@loopback-games/larry",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Leisure Suit Larry in the Land of the Lounge Lizards — a faithful AGI interpreter and modern responsive web port",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "assets": "node tools/build-assets.mjs",
+    "dev": "vite",
+    "build": "npm run assets && tsc --noEmit && vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "@types/node": "^26.2.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5",
+    "vitest": "^2.1.8"
+  }
+}
