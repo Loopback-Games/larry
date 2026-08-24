@@ -109,7 +109,7 @@ export const lounge: RoomDef = {
   title: 'The Lounge',
   scene: loungeScene,
 
-  entries: { default: { x: 160, y: 164, facing: 'back' } },
+  entries: { default: { x: 160, y: 156, facing: 'back' } },
 
   describe:
     'A low room with a curtain, a small stage, and eleven empty tables with ' +

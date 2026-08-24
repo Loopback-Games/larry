@@ -28,8 +28,10 @@ export const penthouseLoungeScene = () =>
     p.ink(darker(C.brown)).line(2, 112, 135, 112);
     p.ink(C.yellow).box(14, 76, 108, 8);
     p.ink(C.white).box(24, 70, 24, 8).box(84, 70, 24, 8);
-    p.ink(C.slate).box(44, 118, 60, 6).box(52, 124, 5, 12).box(92, 124, 5, 12);
-    p.ink(C.red).box(60, 112, 10, 6);
+    // The low table sits off to the left, clear of the two doorways, so there
+    // is a walkway from the lift to the bedroom.
+    p.ink(C.slate).box(10, 128, 52, 6).box(16, 134, 5, 12).box(52, 134, 5, 12);
+    p.ink(C.red).box(28, 122, 10, 6);
 
     // A bar cart and a lamp, because this is that kind of apartment.
     p.ink(C.yellow).box(122, 96, 26, 4).box(124, 100, 3, 20).box(144, 100, 3, 20);
@@ -60,8 +62,8 @@ export const penthouseLoungeScene = () =>
 
     p.depthRamp(116, p.height, 6, 14);
     p.blockRect(0, 0, p.width, 116);
-    // Only the low table is solid down here; the lift doorway must stay clear.
-    p.blockRect(44, 118, 60, 20);
+    // Only the low table is solid down here; both doorways must stay clear.
+    p.blockRect(10, 128, 52, 18);
     p.blockRect(264, 112, 56, 10);
   });
 
@@ -72,8 +74,8 @@ export const penthouseLounge: RoomDef = {
 
   entries: {
     default: { x: 160, y: 150, facing: 'front' },
-    [RoomId.Elevator]: { x: 121, y: 148, facing: 'front' },
-    [RoomId.PenthouseBedroom]: { x: 78, y: 150, facing: 'right' },
+    [RoomId.Elevator]: { x: 121, y: 152, facing: 'front' },
+    [RoomId.PenthouseBedroom]: { x: 78, y: 152, facing: 'right' },
     [RoomId.PenthouseHotTub]: { x: 280, y: 150, facing: 'left' },
   },
 
@@ -100,8 +102,8 @@ export const penthouseLounge: RoomDef = {
   ],
 
   exits: [
-    { x: 104, y: 116, w: 34, h: 8, to: RoomId.Elevator },
-    { x: 58, y: 116, w: 38, h: 8, to: RoomId.PenthouseBedroom },
+    { x: 104, y: 138, w: 34, h: 10, to: RoomId.Elevator },
+    { x: 58, y: 138, w: 38, h: 10, to: RoomId.PenthouseBedroom },
     {
       x: 288, y: 124, w: 32, h: 30,
       to: RoomId.PenthouseHotTub,

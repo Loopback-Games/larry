@@ -92,9 +92,11 @@ function spin(g: Game): void {
 export const slots: RoomDef = {
   id: RoomId.Slots,
   title: 'The Slot Machine',
+  closeup: true,
+  leaveTo: RoomId.InsideCasino,
   scene: slotsScene,
 
-  entries: { default: { x: 160, y: 166, facing: 'back' } },
+  entries: { default: { x: 160, y: 154, facing: 'back' } },
 
   describe:
     'A slot machine the height of a wardrobe, lit like a small cathedral. ' +
@@ -106,14 +108,13 @@ export const slots: RoomDef = {
     { noun: 'tray', synonyms: ['payout tray', 'payout'], look: 'Empty, and polished by generations of hopeful hands.' },
   ],
 
-  exits: [{ x: 0, y: 160, w: 320, h: 8, to: RoomId.InsideCasino }],
 
   onEnter(g) {
     if (!g.flag('seenSlots')) {
       g.set('seenSlots');
       g.say(
         `Five dollars a pull. You have $${g.counter('money')}.`,
-        'PULL the arm to play. Walk down off the screen to leave.',
+        'PULL the arm to play, or LEAVE to go back to the floor.',
       );
     }
   },

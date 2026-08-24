@@ -34,3 +34,9 @@ export const WALK_TRIGGER = 4;
 
 /** Rows above this are scenery only; walkers are clamped below it. */
 export const DEFAULT_HORIZON = 96;
+
+/**
+ * How many rows up from the feet form a walker's colliding base. Small enough
+ * that a character can stand in front of waist-high scenery.
+ */
+export const FOOT_ROWS = 3;

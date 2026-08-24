@@ -61,7 +61,7 @@ export const elevatorLobby: RoomDef = {
 
   entries: {
     default: { x: 160, y: 150, facing: 'back' },
-    [RoomId.InsideCasino]: { x: 160, y: 164, facing: 'back' },
+    [RoomId.InsideCasino]: { x: 160, y: 156, facing: 'back' },
     [RoomId.Elevator]: { x: 160, y: 132, facing: 'front' },
   },
 

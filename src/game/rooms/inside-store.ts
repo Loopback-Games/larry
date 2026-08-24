@@ -105,7 +105,7 @@ export const insideStore: RoomDef = {
 
   entries: {
     default: { x: 250, y: 150, facing: 'left' },
-    [RoomId.OutsideStore]: { x: 296, y: 152, facing: 'left' },
+    [RoomId.OutsideStore]: { x: 276, y: 150, facing: 'left' },
   },
 
   describe:

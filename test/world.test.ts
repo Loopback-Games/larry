@@ -4,6 +4,7 @@ import { createGame } from '../src/game/index.js';
 import { RoomId, MAX_SCORE } from '../src/game/ids.js';
 import { QUESTIONS } from '../src/game/rooms/age-check.js';
 import { CANVAS_W, CANVAS_H, WALK_BLOCKED } from '../src/constants.js';
+import { reachable } from './navigation.js';
 
 describe('world integrity', () => {
   it('gives every room a unique id that is a declared RoomId', () => {
@@ -66,8 +67,8 @@ describe('world integrity', () => {
       expect(s.height, room.id).toBe(CANVAS_H);
       const painted = s.colour.reduce((n, v) => n + (v === 0 ? 0 : 1), 0);
       expect(painted, `${room.id} is mostly blank`).toBeGreaterThan(3000);
-      // Framing screens are deliberately unwalkable.
-      if (room.cutscene) continue;
+      // Framing screens and close-ups are deliberately unwalkable.
+      if (room.cutscene || room.closeup) continue;
       const walkable = s.walk.reduce((n, v) => n + (v === 0 ? 1 : 0), 0);
       expect(walkable, `${room.id} has no walkable floor`).toBeGreaterThan(500);
     }
@@ -75,7 +76,7 @@ describe('world integrity', () => {
 
   it('lets Larry stand where each room puts him', () => {
     for (const room of ROOMS) {
-      if (room.cutscene) continue;
+      if (room.cutscene || room.closeup) continue;
       const s = room.scene();
       for (const [name, point] of Object.entries(room.entries)) {
         const mask = s.walk[Math.round(point.y) * CANVAS_W + Math.round(point.x)];
@@ -84,18 +85,39 @@ describe('world integrity', () => {
     }
   });
 
-  it('places every exit somewhere reachable', () => {
+  it('lets the player actually walk to every exit', () => {
+    const g = createGame();
     for (const room of ROOMS) {
-      const s = room.scene();
-      for (const exit of room.exits ?? []) {
-        let reachable = 0;
-        for (let y = exit.y; y < exit.y + exit.h; y++) {
+      if (room.cutscene || room.closeup || !room.exits?.length) continue;
+      g.goTo(room.id);
+      while (g.dismissMessage());
+
+      const spots = reachable(g);
+      expect(spots.size, `${room.id}: the entry point is walled in`).toBeGreaterThan(40);
+
+      for (const exit of room.exits) {
+        let ok = false;
+        for (let y = exit.y; y < exit.y + exit.h && !ok; y++) {
           for (let x = exit.x; x < exit.x + exit.w; x++) {
-            if (s.walk[y * CANVAS_W + x] !== WALK_BLOCKED) reachable++;
+            if (spots.has(y * CANVAS_W + x)) {
+              ok = true;
+              break;
+            }
           }
         }
-        expect(reachable, `${room.id} -> ${exit.to} is walled off`).toBeGreaterThan(0);
+        expect(ok, `${room.id} -> ${exit.to} cannot be walked to from the entry`).toBe(true);
       }
+    }
+  });
+
+  it('gives every room a floor deep enough to move around in', () => {
+    const g = createGame();
+    for (const room of ROOMS) {
+      if (room.cutscene || room.closeup) continue;
+      g.goTo(room.id);
+      while (g.dismissMessage());
+      const spots = reachable(g);
+      expect(spots.size, `${room.id} has almost nowhere to stand`).toBeGreaterThan(300);
     }
   });
 

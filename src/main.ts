@@ -199,7 +199,7 @@ function boot(): void {
     const point = canvasToScene(canvas, event.clientX, event.clientY);
     if (!point) return;
     // Walking to an unreachable spot should not strand Larry mid-stride.
-    if (!game.canStand(point.x, point.y)) return;
+    if (!game.canOccupy(point.x, point.y, game.ego.collisionHalfWidth)) return;
     game.steer(0, 0);
     held.clear();
     game.ego.walkTo(point.x, point.y);

@@ -132,6 +132,7 @@ function ride(g: Game, room: string, label: string): void {
 export const taxi: RoomDef = {
   id: RoomId.Taxi,
   title: 'In the Cab',
+  closeup: true,
   scene: taxiScene,
 
   entries: { default: { x: 160, y: 160, facing: 'back' } },

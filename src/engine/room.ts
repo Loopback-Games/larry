@@ -42,6 +42,21 @@ export interface RoomDef {
    * ending. Larry is not drawn and there is nowhere to walk.
    */
   readonly cutscene?: boolean;
+  /**
+   * Topmost row a walker's feet may reach, and how much smaller they are drawn
+   * there than at the bottom of the screen. Gives the room depth and stops a
+   * full-size figure standing against the back wall.
+   */
+  readonly horizon?: number;
+  readonly scaleAtHorizon?: number;
+  /**
+   * A close-up of one thing rather than a place: a slot machine, a card table,
+   * the inside of a lift. The player is not drawn and does not walk; they use
+   * what is in front of them and then leave.
+   */
+  readonly closeup?: boolean;
+  /** Where LEAVE goes from a close-up. */
+  readonly leaveTo?: string;
   /** Builds the room's artwork; called once and cached. */
   readonly scene: () => Surface;
   /** Entry positions keyed by the room travelled from, plus a `default`. */

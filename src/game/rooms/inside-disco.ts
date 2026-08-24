@@ -153,7 +153,7 @@ export const insideDisco: RoomDef = {
 
   entries: {
     default: { x: 160, y: 160, facing: 'back' },
-    [RoomId.OutsideDisco]: { x: 160, y: 162, facing: 'back' },
+    [RoomId.OutsideDisco]: { x: 160, y: 156, facing: 'back' },
   },
 
   describe:

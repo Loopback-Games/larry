@@ -99,7 +99,7 @@ export const outsideStore: RoomDef = {
 
   entries: {
     default: { x: 200, y: 150, facing: 'front' },
-    [RoomId.InsideStore]: { x: 238, y: 134, facing: 'front' },
+    [RoomId.InsideStore]: { x: 238, y: 142, facing: 'front' },
     [RoomId.Taxi]: { x: 60, y: 156, facing: 'right' },
   },
 
@@ -136,7 +136,7 @@ export const outsideStore: RoomDef = {
   ],
 
   exits: [
-    { x: 216, y: 120, w: 44, h: 8, to: RoomId.InsideStore },
+    { x: 216, y: 128, w: 44, h: 9, to: RoomId.InsideStore },
     { x: 0, y: 144, w: 40, h: 24, to: RoomId.Taxi },
   ],
 

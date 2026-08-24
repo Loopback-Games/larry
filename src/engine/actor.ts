@@ -25,6 +25,16 @@ export interface ActorOptions {
   /** Height in pixels, used for the bounding box when not using the rig. */
   readonly height?: number;
   readonly width?: number;
+  /**
+   * Half-width of the base that collides with scenery. Characters collide on
+   * their feet, not their whole silhouette, so they can stand in front of a
+   * counter without the counter pushing them away.
+   */
+  readonly footHalfWidth?: number;
+  /** Depth of the colliding base, measured upwards from the feet. */
+  readonly footHeight?: number;
+  /** Actors that do not shrink with distance, such as vehicles and props. */
+  readonly fixedScale?: boolean;
 }
 
 /**
@@ -47,6 +57,11 @@ export class Actor {
   moving = false;
   readonly height: number;
   readonly width: number;
+  readonly footHalfWidth: number;
+  readonly footHeight: number;
+  readonly fixedScale: boolean;
+  /** Perspective scale for this frame, set by the engine before drawing. */
+  scale = 1;
 
   constructor(options: ActorOptions) {
     this.id = options.id;
@@ -60,15 +75,27 @@ export class Actor {
     this.depthOverride = options.depth;
     this.height = options.height ?? (options.style?.height ?? 30);
     this.width = options.width ?? 15;
+    this.footHalfWidth = options.footHalfWidth ?? 4;
+    this.footHeight = options.footHeight ?? 3;
+    this.fixedScale = options.fixedScale ?? options.render !== undefined;
+  }
+
+  /**
+   * Half-width of the base as it currently stands, including perspective.
+   * A figure drawn smaller in the distance occupies proportionally less floor,
+   * so collision and rendering agree at every depth.
+   */
+  get collisionHalfWidth(): number {
+    return this.footHalfWidth * this.scale;
   }
 
   /** Bounding box in surface coordinates, with (x, y) as the feet. */
   get bounds(): { left: number; top: number; right: number; bottom: number } {
-    const half = Math.ceil(this.width / 2);
+    const half = Math.ceil((this.width * this.scale) / 2) + 1;
     return {
-      left: this.x - half,
-      top: this.y - this.height + 1,
-      right: this.x + half,
+      left: Math.floor(this.x - half),
+      top: Math.floor(this.y - this.height * this.scale) - 1,
+      right: Math.ceil(this.x + half),
       bottom: this.y,
     };
   }
@@ -101,7 +128,15 @@ export class Actor {
       return;
     }
     if (this.style) {
-      drawFigure(p, this.style, this.facing, this.moving ? this.phase : 0, this.x, this.y);
+      const scaled =
+        this.scale === 1
+          ? this.style
+          : {
+              ...this.style,
+              height: Math.max(10, Math.round((this.style.height ?? 30) * this.scale)),
+              build: Math.max(2, Math.round((this.style.build ?? 4) * this.scale)),
+            };
+      drawFigure(p, scaled, this.facing, this.moving ? this.phase : 0, this.x, this.y);
     }
   }
 }

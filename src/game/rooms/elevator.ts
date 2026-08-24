@@ -86,6 +86,7 @@ export const elevatorScene = () =>
 export const elevator: RoomDef = {
   id: RoomId.Elevator,
   title: 'In the Lift',
+  closeup: true,
   scene: elevatorScene,
 
   entries: { default: { x: 160, y: 158, facing: 'back' } },

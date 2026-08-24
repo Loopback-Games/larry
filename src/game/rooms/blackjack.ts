@@ -131,9 +131,11 @@ function dealerPlays(g: Game): void {
 export const blackjack: RoomDef = {
   id: RoomId.Blackjack,
   title: 'The Card Table',
+  closeup: true,
+  leaveTo: RoomId.InsideCasino,
   scene: blackjackScene,
 
-  entries: { default: { x: 160, y: 164, facing: 'back' } },
+  entries: { default: { x: 160, y: 154, facing: 'back' } },
 
   describe:
     'A green baize table with a dealer behind it who has been doing this since ' +
@@ -149,7 +151,6 @@ export const blackjack: RoomDef = {
     { noun: 'shoe', synonyms: ['dealer shoe', 'cards'], look: 'A wooden shoe holding more decks than you can count.' },
   ],
 
-  exits: [{ x: 0, y: 162, w: 320, h: 6, to: RoomId.InsideCasino }],
 
   onEnter(g) {
     g.setCounter('bjState', 0);
@@ -158,6 +159,7 @@ export const blackjack: RoomDef = {
       g.say(
         `"Place your bet," says the dealer. Minimum $${MIN_BET}.`,
         'Type BET 10 to stake ten dollars, then HIT or STAND.',
+        'LEAVE when you have had enough.',
       );
     }
   },

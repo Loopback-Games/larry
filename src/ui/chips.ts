@@ -38,6 +38,11 @@ export function installChips(
   const refresh = (): void => {
     container.replaceChildren();
 
+    // A close-up cannot be walked out of, so offer the way back first.
+    if (game.room.closeup && game.room.leaveTo) {
+      container.append(chip('leave', 'leave', true));
+    }
+
     for (const verb of CORE_VERBS) container.append(chip(verb, verb, false));
 
     // Scenery the player can see right now.

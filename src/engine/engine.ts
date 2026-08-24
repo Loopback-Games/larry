@@ -4,7 +4,7 @@ import { Actor } from './actor.js';
 import { Command, EMPTY_COMMAND, parse } from './parser.js';
 import { Vocabulary } from './vocabulary.js';
 import type { RoomDef, Hotspot, EntryPoint } from './room.js';
-import { WALK_BLOCKED, WALK_WATER, CANVAS_W, CANVAS_H } from '../constants.js';
+import { WALK_BLOCKED, WALK_WATER, CANVAS_W, CANVAS_H, FOOT_ROWS } from '../constants.js';
 
 /** Serialisable game progress. */
 export interface SaveData {
@@ -53,6 +53,8 @@ export class Game {
   private readonly scenes = new Map<string, Surface>();
   /** Per-room noun lookup layers, so scenery words stay room-local. */
   private readonly roomNouns = new Map<string, Map<string, string>>();
+  /** Horizon and perspective scale, derived from each room's walk mask. */
+  private readonly perspective = new Map<string, { horizon: number; near: number }>();
   private readonly hooks: GameHooks;
 
   private flags = new Set<string>();
@@ -76,6 +78,15 @@ export class Game {
   /** Direction the player is currently holding, in canvas units. */
   private inputDx = 0;
   private inputDy = 0;
+
+  /**
+   * Exits the ego was already standing in when the room loaded.
+   *
+   * Arriving inside the doorway you just came through would otherwise fire that
+   * exit again on the very next tick and bounce the player straight back. Each
+   * one is armed only once the ego has stepped clear of it.
+   */
+  private suppressedExits = new Set<number>();
 
   /** Last command, for `again`. */
   private lastCommand: Command = EMPTY_COMMAND;
@@ -238,6 +249,7 @@ export class Game {
     if (!scene) {
       scene = room.scene();
       this.scenes.set(roomId, scene);
+      this.perspective.set(roomId, derivePerspective(scene));
     }
     this.surface = scene;
 
@@ -251,12 +263,20 @@ export class Game {
       if (spawn.facing) this.ego.facing = spawn.facing;
     }
     this.ego.stop();
+    this.ego.scale = this.scaleAt(this.ego.y);
     this.inputDx = 0;
     this.inputDy = 0;
 
+    this.suppressedExits = new Set(
+      (room.exits ?? [])
+        .map((exit, index) => (this.inExit(exit, this.ego.x, this.ego.y) ? index : -1))
+        .filter((index) => index >= 0),
+    );
+
     this.actors = room.populate ? room.populate(this) : [];
-    // Framing screens have no playable space, so Larry stays off them.
-    this.ego.visible = !room.cutscene;
+    // Framing screens and close-ups have no playable space, so Larry stays off
+    // them; a close-up is a view of one object, not somewhere to stand.
+    this.ego.visible = !room.cutscene && !room.closeup;
     room.onEnter?.(this);
     this.hooks.onRoomChange?.(roomId);
   }
@@ -320,33 +340,108 @@ export class Game {
   }
 
   /** True when an actor of this height may stand with its feet at (x, y). */
+  /** True when a single point is standable. Used by tap-to-walk and tests. */
   canStand(x: number, y: number, swimmer = false): boolean {
-    if (x < 2 || x > CANVAS_W - 3 || y < 1 || y > CANVAS_H - 1) return false;
-    const mask = this.surface.walkAt(Math.round(x), Math.round(y));
-    if (mask === WALK_BLOCKED) return false;
-    if (mask === WALK_WATER && !swimmer) return false;
+    return this.canOccupy(x, y, 0, swimmer);
+  }
+
+  /**
+   * True when a walker whose base is `halfWidth` across may stand with its feet
+   * at (x, y).
+   *
+   * Characters collide on their base rather than a single pixel, so they cannot
+   * push their feet into a wall, and rather than their whole silhouette, so
+   * they can still stand in front of a counter.
+   */
+  canOccupy(x: number, y: number, halfWidth = 0, swimmer = false): boolean {
+    const fy = Math.round(y);
+    if (fy < 1 || fy > CANVAS_H - 1) return false;
+
+    if (fy < this.horizon) return false;
+
+    const left = Math.round(x - halfWidth);
+    const right = Math.round(x + halfWidth);
+    if (left < 1 || right > CANVAS_W - 2) return false;
+
+    // Sample the base box: its full width, and a few rows up from the feet.
+    for (let sy = fy; sy > fy - FOOT_ROWS && sy >= 0; sy--) {
+      for (let sx = left; sx <= right; sx++) {
+        const mask = this.surface.walkAt(sx, sy);
+        if (mask === WALK_BLOCKED) return false;
+        if (mask === WALK_WATER && !swimmer) return false;
+      }
+    }
     return true;
   }
 
+  /**
+   * Topmost row a walker's feet may reach in the current room. Taken from the
+   * room if it declares one, otherwise derived from where the floor starts.
+   */
+  get horizon(): number {
+    const room = this.currentRoom;
+    if (!room) return 0;
+    if (room.horizon !== undefined) return room.horizon;
+    return this.perspective.get(room.id)?.horizon ?? 0;
+  }
+
+  /**
+   * Perspective scale for a walker standing at row `y`.
+   *
+   * Figures shrink towards the horizon so a room reads as space rather than a
+   * flat backdrop, and so a full-size character cannot stand against the back
+   * wall looking like a giant.
+   */
+  scaleAt(y: number): number {
+    const room = this.currentRoom;
+    if (!room) return 1;
+    const horizon = this.horizon;
+    const near = room.scaleAtHorizon ?? this.perspective.get(room.id)?.near ?? 1;
+    if (near >= 1) return 1;
+    const span = Math.max(1, CANVAS_H - 1 - horizon);
+    const t = Math.min(1, Math.max(0, (y - horizon) / span));
+    return Math.round((near + (1 - near) * t) * 100) / 100;
+  }
+
+  /**
+   * Move an actor by up to (dx, dy), one pixel at a time.
+   *
+   * Stepping pixel by pixel rather than jumping the whole distance is what
+   * stops a walker crossing a thin wall in a single tick, and stops a diagonal
+   * cutting the corner of one. When the diagonal is blocked the move falls back
+   * to whichever single axis is still clear, so corners are not sticky.
+   */
   private moveActor(actor: Actor, dx: number, dy: number): boolean {
     if (dx === 0 && dy === 0) return false;
-    const targetX = actor.x + dx;
-    const targetY = actor.y + dy;
-    if (this.canStand(targetX, targetY)) {
-      actor.x = targetX;
-      actor.y = targetY;
-      return true;
+    const steps = Math.max(Math.abs(dx), Math.abs(dy));
+    const stepX = dx / steps;
+    const stepY = dy / steps;
+    const half = actor.collisionHalfWidth;
+    let moved = false;
+
+    for (let i = 0; i < steps; i++) {
+      const nx = actor.x + stepX;
+      const ny = actor.y + stepY;
+      if (this.canOccupy(nx, ny, half)) {
+        actor.x = nx;
+        actor.y = ny;
+        moved = true;
+        continue;
+      }
+      if (stepX !== 0 && this.canOccupy(actor.x + stepX, actor.y, half)) {
+        actor.x += stepX;
+        moved = true;
+        continue;
+      }
+      if (stepY !== 0 && this.canOccupy(actor.x, actor.y + stepY, half)) {
+        actor.y += stepY;
+        moved = true;
+        continue;
+      }
+      break;
     }
-    // Slide along whichever axis is still clear, so corners are not sticky.
-    if (dx !== 0 && this.canStand(actor.x + dx, actor.y)) {
-      actor.x += dx;
-      return true;
-    }
-    if (dy !== 0 && this.canStand(actor.x, actor.y + dy)) {
-      actor.y += dy;
-      return true;
-    }
-    return false;
+    if (moved) actor.scale = actor.fixedScale ? 1 : this.scaleAt(actor.y);
+    return moved;
   }
 
   // ---- the tick ----------------------------------------------------------
@@ -354,6 +449,12 @@ export class Game {
   /** Advance the simulation one logical frame. */
   tick(): void {
     if (this.isBlocked || !this.currentRoom) return;
+
+    if (this.currentRoom.closeup) {
+      for (const actor of this.actors) this.stepActor(actor);
+      this.currentRoom.onTick?.(this);
+      return;
+    }
 
     // Larry follows the held direction.
     const speed = this.ego.speed;
@@ -422,12 +523,26 @@ export class Game {
     }
   }
 
+  private inExit(
+    exit: { x: number; y: number; w: number; h: number },
+    x: number,
+    y: number,
+  ): boolean {
+    return x >= exit.x && x < exit.x + exit.w && y >= exit.y && y < exit.y + exit.h;
+  }
+
   private checkExits(): void {
     const room = this.currentRoom;
     if (!room?.exits) return;
     const { x, y } = this.ego;
-    for (const exit of room.exits) {
-      if (x < exit.x || x >= exit.x + exit.w || y < exit.y || y >= exit.y + exit.h) continue;
+    for (let index = 0; index < room.exits.length; index++) {
+      const exit = room.exits[index];
+      if (!this.inExit(exit, x, y)) {
+        // Stepping clear of a doorway arms it again.
+        this.suppressedExits.delete(index);
+        continue;
+      }
+      if (this.suppressedExits.has(index)) continue;
       const gate = exit.when?.(this);
       if (typeof gate === 'string') {
         this.say(gate);
@@ -455,6 +570,7 @@ export class Game {
       .sort((a, b) => a.y - b.y);
 
     for (const actor of drawable) {
+      actor.scale = actor.fixedScale ? 1 : this.scaleAt(actor.y);
       const before = composed.colour.slice();
       actor.draw(painter);
       this.applyDepth(composed, before, actor);
@@ -580,6 +696,16 @@ export class Game {
         this.say('Time passes. It is not kind to you.');
         return true;
 
+      case 'exit':
+      case 'down': {
+        const room = this.currentRoom;
+        if (room?.closeup && room.leaveTo) {
+          this.goTo(room.leaveTo);
+          return true;
+        }
+        return false;
+      }
+
       case 'help':
         this.say(HELP_TEXT);
         return true;
@@ -686,6 +812,31 @@ export class Game {
       return false;
     }
   }
+}
+
+/**
+ * Work out where a room's floor begins and how much perspective it has.
+ *
+ * A shallow strip of floor gets no scaling: shrinking a figure across fifteen
+ * rows just makes it flicker. A deep floor gets enough to read as distance.
+ */
+function derivePerspective(scene: Surface): { horizon: number; near: number } {
+  const RUN = 24;
+  let horizon = CANVAS_H - 1;
+  for (let y = 0; y < CANVAS_H; y++) {
+    let run = 0;
+    for (let x = 0; x < CANVAS_W; x++) {
+      run = scene.walk[y * CANVAS_W + x] === WALK_BLOCKED ? 0 : run + 1;
+      if (run >= RUN) {
+        horizon = y;
+        break;
+      }
+    }
+    if (horizon !== CANVAS_H - 1) break;
+  }
+  const depth = CANVAS_H - 1 - horizon;
+  const near = depth >= 30 ? 0.62 : depth >= 18 ? 0.78 : 1;
+  return { horizon, near };
 }
 
 function resolveText(

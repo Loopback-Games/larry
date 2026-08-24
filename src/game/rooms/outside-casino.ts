@@ -92,7 +92,7 @@ export const outsideCasino: RoomDef = {
   entries: {
     default: { x: 250, y: 160, facing: 'left' },
     [RoomId.Taxi]: { x: 292, y: 160, facing: 'left' },
-    [RoomId.InsideCasino]: { x: 162, y: 150, facing: 'front' },
+    [RoomId.InsideCasino]: { x: 162, y: 162, facing: 'front' },
   },
 
   describe:
@@ -120,7 +120,7 @@ export const outsideCasino: RoomDef = {
   ],
 
   exits: [
-    { x: 126, y: 140, w: 72, h: 8, to: RoomId.InsideCasino },
+    { x: 126, y: 148, w: 72, h: 10, to: RoomId.InsideCasino },
     { x: 296, y: 148, w: 24, h: 20, to: RoomId.Taxi },
   ],
 

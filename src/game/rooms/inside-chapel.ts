@@ -83,7 +83,7 @@ export const insideChapel: RoomDef = {
 
   entries: {
     default: { x: 160, y: 162, facing: 'back' },
-    [RoomId.OutsideChapel]: { x: 160, y: 164, facing: 'back' },
+    [RoomId.OutsideChapel]: { x: 160, y: 158, facing: 'back' },
   },
 
   describe:
