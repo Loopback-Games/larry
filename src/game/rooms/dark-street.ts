@@ -18,52 +18,57 @@ const DOORS: readonly Doorway[] = [
  */
 export const darkStreetScene = () =>
   paint((p) => {
+    // ---- night -------------------------------------------------------------
     p.ink(C.black).box(0, 0, p.width, p.height);
-    p.ink(C.white).stars(0, 0, p.width, 40, 30, 0x0dd51e);
-    p.skyline(96, 30, 66, C.black, C.navy, 0x77aa11);
+    p.gradient(0, 0, p.width, 60, C.black, C.navyDeep, 0, 0.9);
+    p.ink(C.steel).stars(0, 0, p.width, 40, 34, 0x51e712);
 
-    // A single streetlight failing to light anything.
-    p.glow(81, 33, 20, C.brown, 0.85);
-    p.ink(C.slate).box(58, 40, 5, 92);
-    p.ink(C.grey).path([58, 40, 62, 32, 82, 30]);
-    p.ink(C.yellow).solid([76, 30, 92, 30, 88, 40, 80, 40]);
-    // A weak cone of light that reaches the pavement and stops. Dithered, so
-    // it reads as light falling rather than a painted triangle.
-    p.saved((q) => {
-      for (let y = 40; y < 132; y++) {
-        const t = (y - 40) / 92;
-        const halfWidth = 12 + t * 26;
-        const density = 0.55 * (1 - t * 0.8);
-        q.blend(
-          Math.round(81 - halfWidth),
-          y,
-          Math.round(halfWidth * 2),
-          1,
-          C.black,
-          C.brown,
-          density,
-        );
+    // ---- shuttered frontages ----------------------------------------------
+    // Three units, each a little darker than the last as the street runs west
+    // into nothing. Structure, so the dark reads as a place and not a void.
+    for (let i = 0; i < 4; i++) {
+      const x = 96 + i * 58;
+      p.slab(x, 44 + i * 2, 56, FLOOR - 44, C.asphalt, 1);
+      p.relight(x, 44, 56, FLOOR - 44, -i * 0.5);
+      // Roller shutter.
+      p.ink(C.asphaltDeep);
+      for (let y = 62 + i * 2; y < FLOOR - 6; y += 5) p.line(x + 4, y, x + 51, y);
+      p.slab(x + 3, 56 + i * 2, 50, 5, C.maroonDeep, 1);
+      p.ink(C.concrete).box(x, 44 + i * 2, 56, 2);
+    }
+    // The last one fades out entirely; the street simply stops being lit.
+    p.relight(250, 0, 70, p.height, -2);
+
+    // ---- the one streetlight ------------------------------------------------
+    p.ink(C.asphalt).box(46, 22, 5, 46);
+    p.ink(C.pewter).box(44, 20, 9, 3);
+    p.ink(C.concrete).path([48, 22, 60, 14, 74, 16]);
+    p.ink(C.gold).solid([66, 18, 84, 18, 80, 28, 70, 28]);
+    p.ink(C.yellowPale).box(69, 26, 12, 2);
+    p.glow(75, 26, 30, C.brass, 0.5);
+
+    // Its cone, thrown down the wall and across the pavement.
+    p.ink(C.bronze);
+    for (let y = 30; y < FLOOR + 26; y += 2) {
+      const t = (y - 30) / (FLOOR + 26 - 30);
+      const half = 8 + t * 52;
+      for (let x = Math.round(75 - half); x < 75 + half; x += 3) {
+        if (((x + y) & 3) === 0) p.dot(x, y);
       }
-    });
-
-    // Shuttered frontages that have not opened in years.
-    for (const sx of [140, 210, 276]) {
-      p.ink(C.slate).box(sx, 54, 56, 76);
-      p.ink(C.black).outline(sx, 54, 56, 76);
-      p.ink(darker(C.slate));
-      for (let y = 58; y < 128; y += 5) p.line(sx + 2, y, sx + 53, y);
-      p.ink(C.maroon).box(sx + 8, 44, 40, 10);
     }
 
-    // Road and pavement.
-    p.ink(darker(C.slate)).box(0, 130, p.width, 14);
-    p.ink(C.slate).line(0, 130, p.width - 1, 130);
-    p.ink(C.black).box(0, 144, p.width, p.height - 144);
-    p.ink(darker(C.slate)).line(0, 144, p.width - 1, 144);
+    // ---- pavement and road --------------------------------------------------
+    p.ink(C.asphalt).box(0, FLOOR, p.width, 20);
+    p.sweep(0, FLOOR, p.width, 20, -1, 0);
+    p.ink(C.concrete).box(0, FLOOR, p.width, 1);
+    p.ink(C.asphaltDeep).box(0, 150, p.width, p.height - 150);
+    p.lightPool(75, 148, 70, 26, 1);
+    p.contact(0, FLOOR, p.width, 10, -2);
 
-    // Two points of light that are not streetlights.
-    p.ink(C.red).dot(240, 150).dot(248, 150);
+    // Something small and red, watching, at the edge of the light.
+    p.ink(C.redLit).dots([148, 156, 152, 156]);
 
+    doorways(p, DOORS);
     p.depthRamp(130, p.height, 5, 14);
     doorways(p, DOORS);
     walls(p, FLOOR, DOORS);

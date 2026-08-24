@@ -1,5 +1,5 @@
 import { paint } from '../../engine/scene.js';
-import { C, darker } from '../../engine/palette.js';
+import { C } from '../../engine/palette.js';
 import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
@@ -21,59 +21,74 @@ const DOORS: readonly Doorway[] = [
  */
 export const barToiletScene = () =>
   paint((p) => {
-    // Tiled walls, grouted in a colour chosen by someone in a hurry.
-    p.ink(C.teal).box(0, 0, p.width, 128);
-    p.ink(darker(C.teal));
-    for (let y = 8; y < 128; y += 12) p.line(0, y, p.width - 1, y);
-    for (let x = 0; x < p.width; x += 16) p.line(x, 0, x, 127);
-    p.ink(C.black).box(0, 0, p.width, 8);
+    // ---- tiled walls -------------------------------------------------------
+    p.ink(C.teal).box(0, 0, p.width, FLOOR);
+    p.sweep(0, 0, p.width, FLOOR, 1, -1);
+    p.ink(C.tealDeep);
+    for (let y = 10; y < FLOOR; y += 11) p.line(0, y, p.width - 1, y);
+    for (let x = 0; x < p.width; x += 15) p.line(x, 0, x, FLOOR - 1);
+    p.ink(C.tealLit);
+    for (let y = 11; y < FLOOR; y += 11) p.line(0, y, p.width - 1, y);
+    p.slab(0, 0, p.width, 10, C.asphalt, 1);
 
-    // Graffiti: the wall does a lot of work in this town.
-    p.ink(C.white);
-    p.path([182, 40, 190, 34, 198, 40, 190, 46, 182, 40]);
-    p.ink(C.yellow).path([210, 34, 210, 46, 218, 46]).path([224, 34, 232, 34, 232, 46, 224, 46]);
-    p.ink(C.pink).path([182, 56, 196, 56]).path([202, 52, 202, 60]);
-    p.ink(C.lime).path([214, 54, 222, 62, 230, 54]);
-    p.ink(C.red).path([240, 36, 248, 44, 240, 52]);
+    // One dead fluorescent tube doing what it can.
+    p.slab(126, 12, 68, 5, C.silver, 1);
+    p.ink(C.cream).box(129, 13, 62, 2);
+    p.glow(160, 17, 30, C.cyanLit, 0.35, [C.teal, C.tealLit, C.tealDeep]);
+    p.lightPool(160, 30, 90, 40, 1);
 
-    // The stall.
-    p.ink(C.slate).box(24, 26, 108, 102);
-    p.ink(C.black).outline(24, 26, 108, 102);
-    p.ink(C.grey).box(30, 32, 96, 90);
-    p.ink(C.black).line(78, 32, 78, 121);
+    // ---- the stall ---------------------------------------------------------
+    // Sized off Larry: the partition is a little taller than he is, and the
+    // pan comes to about his knee. It used to be the size of an armchair.
+    p.slab(20, 34, 112, 84, C.pewter, 1);
+    p.sweep(22, 36, 108, 80, 0, -1);
+    p.ink(C.asphalt).box(78, 36, 2, 80);
+    p.ink(C.silver).box(20, 34, 112, 2);
+    p.contact(20, 112, 112, 6, -2);
 
     // The throne, and the cistern above it.
-    p.ink(C.white).solid([56, 82, 100, 82, 96, 116, 60, 116]);
-    p.ink(C.grey).outline(56, 82, 45, 35);
-    p.ink(C.white).box(58, 74, 40, 10);
-    p.ink(C.slate).line(58, 74, 97, 74);
-    p.ink(C.white).box(62, 50, 32, 24);
-    p.ink(C.slate).outline(62, 50, 32, 24);
-    p.ink(C.grey).box(64, 52, 28, 4);
-    p.ink(C.slate).box(90, 56, 4, 3);
+    p.ink(C.bone).solid([64, 92, 92, 92, 89, 116, 67, 116]);
+    p.ink(C.cream).line(64, 92, 91, 92);
+    p.ink(C.khaki).line(67, 116, 88, 116);
+    p.slab(62, 84, 32, 9, C.cream, 1);
+    p.slab(66, 68, 24, 16, C.bone, 1);
+    p.ink(C.khaki).box(88, 72, 3, 3);
+    p.contact(60, 114, 36, 5, -2);
 
-    // Basin, taps, and a mirror that has given up.
-    p.ink(C.white).solid([206, 84, 262, 84, 256, 104, 212, 104]);
-    p.ink(C.grey).outline(206, 84, 57, 21);
-    p.ink(C.slate).box(230, 78, 8, 7).box(216, 104, 4, 22).box(248, 104, 4, 22);
-    p.ink(C.black).box(212, 92, 44, 4);
-    p.ink(C.slate).box(204, 20, 60, 44);
-    p.ink(C.grey).outline(204, 20, 60, 44);
-    p.ink(C.white).line(208, 24, 240, 56);
-    p.ink(C.black).path([232, 30, 246, 44, 238, 52]);
+    // ---- basin -------------------------------------------------------------
+    p.ink(C.cream).solid([206, 92, 258, 92, 253, 104, 211, 104]);
+    p.ink(C.white).line(206, 92, 257, 92);
+    p.ink(C.khaki).line(211, 104, 252, 104);
+    p.ink(C.pewter).box(216, 104, 4, 14).box(244, 104, 4, 14);
+    p.slab(228, 86, 8, 7, C.silver, 1);
+    p.contact(204, 116, 56, 5, -2);
 
-    // Floor, with the sort of tiling that hides a great deal.
-    p.ink(C.slate).box(0, 128, p.width, p.height - 128);
-    p.ink(C.grey);
-    for (let x = 0; x < p.width; x += 14)
-      for (let y = 130; y < p.height; y += 8) p.dot(x + ((y / 8) % 2) * 7, y);
-    p.ink(C.black).line(0, 128, p.width - 1, 128);
+    // Mirror over it, reflecting the tiles opposite.
+    p.slab(202, 34, 60, 44, C.pewter, 1);
+    p.ink(C.slateDim).box(205, 37, 54, 38);
+    p.sweep(205, 37, 54, 38, 1, -1);
+    p.ink(C.steel).line(208, 40, 256, 72);
 
-    // Door back to the corridor.
-    p.ink(C.brown).box(286, 34, 32, 94);
-    p.ink(C.black).outline(286, 34, 32, 94);
-    p.ink(C.yellow).dot(292, 84);
+    // ---- graffiti ----------------------------------------------------------
+    // On the wall left of the mirror, where there is room for it to be read.
+    p.ink(C.cream).path([148, 44, 156, 38, 164, 44, 156, 50, 148, 44]);
+    p.ink(C.goldLit).path([174, 38, 174, 50, 182, 50]).path([188, 38, 194, 38, 194, 50, 188, 50]);
+    p.ink(C.pinkLit).path([148, 60, 162, 60]).path([168, 56, 168, 64]);
+    p.ink(C.greenLit).path([176, 58, 184, 66, 192, 58]);
+    p.ink(C.redLit).path([148, 72, 156, 80, 148, 88]);
 
+    // ---- floor -------------------------------------------------------------
+    p.ink(C.concrete).box(0, FLOOR, p.width, p.height - FLOOR);
+    p.sweep(0, FLOOR, p.width, p.height - FLOOR, -1, 1);
+    p.ink(C.asphalt);
+    for (let i = -6; i <= 6; i++) p.line(160 + i * 24, FLOOR, 160 + i * 58, p.height - 1);
+    for (let r = 1; r < 5; r++) {
+      const y = FLOOR + (p.height - FLOOR) * Math.pow(r / 5, 1.7);
+      p.line(0, y, p.width - 1, y);
+    }
+    p.contact(0, FLOOR, p.width, 10, -2);
+
+    doorways(p, DOORS);
     p.depthRamp(128, p.height, 6, 14);
     doorways(p, DOORS);
     walls(p, FLOOR, DOORS);

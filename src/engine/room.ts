@@ -29,6 +29,11 @@ export interface Exit {
    * most disorienting thing an adventure game can do.
    */
   readonly label: string;
+  /**
+   * One ASCII character shown before the label pointing the way out. Set from
+   * the doorway's side; the bitmap font has no arrow glyphs.
+   */
+  readonly marker?: string;
   /** Blocks the exit and explains why when it returns a string. */
   readonly when?: (g: Game) => true | string;
 }

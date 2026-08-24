@@ -12,7 +12,7 @@ const DOORS: readonly Doorway[] = [
     to: RoomId.PenthouseBedroom,
     label: 'Bedroom',
     side: 'back',
-    x: 62,
+    x: 40,
     y: FLOOR,
     w: 34,
     h: 46,
@@ -23,7 +23,7 @@ const DOORS: readonly Doorway[] = [
     to: RoomId.Elevator,
     label: 'Lift',
     side: 'back',
-    x: 248,
+    x: 282,
     y: FLOOR,
     w: 36,
     h: 46,
@@ -48,66 +48,77 @@ const DOORS: readonly Doorway[] = [
 /** The penthouse living room, and the balcony above the hot tub terrace. */
 export const penthouseLoungeScene = () =>
   paint((p) => {
-    p.ink(C.white).box(0, 0, p.width, 116);
-    p.ink(C.grey).box(0, 0, p.width, 8);
+    // ---- shell -------------------------------------------------------------
+    // A pale room with one enormous window. Both doorways sit on plain wall
+    // with nothing in front of them, and the seating goes under the glass.
+    p.ink(C.parchment).box(0, 0, p.width, FLOOR);
+    p.sweep(0, 0, p.width, FLOOR, 1, -1);
+    p.slab(0, 0, p.width, 8, C.khaki, 1);
 
-    // A wall of glass, and the city a long way down.
-    p.ink(C.slate).box(150, 14, 160, 102);
-    p.ink(C.black).box(154, 18, 152, 94);
-    p.ink(C.navy).box(154, 18, 152, 58);
-    p.ink(C.white).stars(154, 18, 152, 40, 26, 0x1010ff);
-    p.skyline(76, 10, 30, C.black, C.yellow, 0x5150c0);
-    p.ink(C.slate).line(230, 18, 230, 111);
-    for (let y = 30; y < 112; y += 24) p.ink(C.slate).line(154, y, 305, y);
+    // ---- the window, and the city forty floors down ------------------------
+    // The skyline helper draws the full width, so the wall is laid back over
+    // the parts of the room the window does not reach.
+    p.ink(C.black).box(0, 16, p.width, 72);
+    p.gradient(0, 16, p.width, 44, C.navyDeep, C.black, 0, 1);
+    p.ink(C.silver).stars(0, 16, p.width, 36, 26, 0x1010ff);
+    // A silhouette body, not black, or the city is invisible against the night.
+    p.skyline(88, 12, 34, C.violetDeep, C.gold, 0x5150c0);
 
-    // Sliding door out to the balcony.
-    p.ink(C.grey).box(226, 40, 40, 72);
-    p.ink(C.cyan).box(230, 44, 32, 64);
-    p.ink(C.white).path([234, 104, 258, 50]);
+    p.ink(C.parchment).box(0, 0, 100, FLOOR).box(246, 0, 74, FLOOR);
+    p.sweep(0, 0, 100, FLOOR, 1, -1);
+    p.sweep(246, 0, 74, FLOOR, 1, -1);
+    p.slab(0, 0, p.width, 8, C.khaki, 1);
 
-    // Sunken seating and a low table.
-    p.ink(C.brown).solid([10, 84, 128, 84, 136, 112, 2, 112]);
-    p.ink(darker(C.brown)).line(2, 112, 135, 112);
-    p.ink(C.yellow).box(14, 76, 108, 8);
-    p.ink(C.white).box(24, 70, 24, 8).box(84, 70, 24, 8);
-    // The low table sits off to the left, clear of the two doorways, so there
-    // is a walkway from the lift to the bedroom.
-    p.ink(C.slate).box(6, 128, 42, 6).box(11, 134, 5, 12).box(38, 134, 5, 12);
-    p.ink(C.red).box(20, 122, 10, 6);
+    // Window frame and mullions.
+    p.ink(C.linen).box(96, 12, 8, 80).box(242, 12, 8, 80);
+    p.ink(C.linen).box(96, 12, 154, 5).box(96, 87, 154, 5);
+    p.ink(C.bone).box(170, 17, 3, 70);
+    p.ink(C.khaki).box(96, 91, 154, 2);
+    p.contact(96, 17, 154, 8, -2);
 
-    // A bar cart and a lamp, because this is that kind of apartment.
-    p.ink(C.yellow).box(122, 96, 26, 4).box(124, 100, 3, 20).box(144, 100, 3, 20);
-    p.ink(C.lime).box(128, 88, 4, 8);
-    p.ink(C.red).box(136, 88, 4, 8);
-    p.ink(C.slate).box(4, 40, 4, 44);
-    p.ink(C.white).solid([-6, 40, 18, 40, 14, 22, -2, 22]);
+    // ---- sunken seating, under the glass -----------------------------------
+    p.ink(C.brown).solid([104, 94, 240, 94, 248, 116, 96, 116]);
+    p.sweep(96, 94, 152, 22, 1, -1);
+    p.ink(C.brownLit).line(104, 94, 239, 94);
+    p.ink(C.tan).box(110, 88, 128, 7);
+    p.slab(120, 82, 26, 8, C.cream, 1);
+    p.slab(196, 82, 26, 8, C.cream, 1);
+    p.contact(96, 112, 152, 8, -2);
 
-    // Door to the bedroom, and the lift doors.
-    p.ink(C.brown).box(60, 20, 34, 64);
-    p.ink(darker(C.brown)).outline(58, 18, 38, 68);
-    p.ink(C.yellow).dot(90, 54);
-    p.ink(C.yellow).box(104, 24, 34, 60);
-    p.ink(darker(C.yellow)).outline(104, 24, 34, 60);
-    p.ink(C.brown).line(121, 26, 121, 82);
+    // ---- a bar cart, because this is that kind of apartment ----------------
+    p.slab(258, 92, 32, 5, C.gold, 1);
+    p.ink(C.brass).box(261, 97, 3, 18).box(284, 97, 3, 18);
+    p.ink(C.greenDim).box(264, 84, 4, 9);
+    p.ink(C.crimson).box(272, 84, 4, 9);
+    p.contact(256, 113, 36, 5, -2);
 
-    // Floor: pale marble.
-    p.ink(C.grey).box(0, 116, p.width, p.height - 116);
-    p.ink(C.white);
-    for (let x = 0; x < p.width; x += 40) p.line(x, 116, x - 20, p.height - 1);
-    for (let y = 124; y < p.height; y += 16) p.line(0, y, p.width - 1, y);
-    p.ink(C.slate).line(0, 116, p.width - 1, 116);
+    // A standard lamp, and the pool of light it puts on the wall.
+    p.ink(C.pewter).box(76, 44, 4, 44);
+    p.ink(C.cream).solid([66, 44, 92, 44, 88, 24, 70, 24]);
+    p.glow(79, 40, 30, C.bone, 0.4, [C.parchment, C.linen, C.bone]);
 
-    // Balcony railing at the right-hand edge.
-    p.ink(C.slate).box(268, 116, 5, 34);
-    p.ink(C.grey).box(266, 112, 54, 4);
-    for (let x = 280; x < 320; x += 12) p.ink(C.slate).box(x, 116, 4, 30);
+    // ---- floor -------------------------------------------------------------
+    p.floorPlane(FLOOR, p.height, C.pewter, 180, 9);
+    p.relight(0, FLOOR, p.width, p.height - FLOOR, 1);
 
+    // A low table, out in front of the seating and clear of both doorways.
+    p.slab(128, 130, 54, 6, C.pewter, 1);
+    p.ink(C.asphalt).box(134, 136, 5, 12).box(172, 136, 5, 12);
+    p.ink(C.crimson).box(146, 124, 12, 6);
+    p.contact(128, 146, 54, 5, -2);
+
+
+    // ---- balcony railing, right edge ---------------------------------------
+    p.slab(296, 122, 24, 4, C.silver, 1);
+    for (let x = 300; x < p.width; x += 10) p.slab(x, 126, 3, 24, C.pewter, 1);
+
+    doorways(p, DOORS);
     p.depthRamp(116, p.height, 6, 14);
     doorways(p, DOORS);
     walls(p, FLOOR, DOORS);
     // Only the low table is solid down here; both doorways must stay clear.
-    p.blockRect(6, 128, 42, 18);
-    p.blockRect(264, 112, 56, 10);
+    p.blockRect(128, 130, 54, 18);
+    p.blockRect(250, 110, 46, 8);
   });
 
 export const penthouseLounge: RoomDef = {
@@ -119,9 +130,9 @@ export const penthouseLounge: RoomDef = {
   scaleAtHorizon: 0.66,
 
   entries: {
-    default: { x: 160, y: 148, facing: 'front' },
-    [RoomId.Elevator]: { x: 248, y: 132, facing: 'front' },
-    [RoomId.PenthouseBedroom]: { x: 62, y: 132, facing: 'front' },
+    default: { x: 212, y: 152, facing: 'front' },
+    [RoomId.Elevator]: { x: 282, y: 132, facing: 'front' },
+    [RoomId.PenthouseBedroom]: { x: 40, y: 132, facing: 'front' },
     [RoomId.PenthouseHotTub]: { x: 282, y: 146, facing: 'left' },
   },
 

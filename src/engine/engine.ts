@@ -736,7 +736,7 @@ export class Game {
     if (!exit) return;
 
     const locked = typeof exit.when?.(this) === 'string';
-    const text = `${locked ? '\u00d7 ' : '\u2191 '}${exit.label}`;
+    const text = `${locked ? 'x' : (exit.marker ?? '^')} ${exit.label}`;
     const width = painter.textWidth(text);
     const x = Math.min(
       CANVAS_W - width - 3,

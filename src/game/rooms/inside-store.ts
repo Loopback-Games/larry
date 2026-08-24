@@ -1,5 +1,5 @@
 import { paint } from '../../engine/scene.js';
-import { C, darker } from '../../engine/palette.js';
+import { C, shade } from '../../engine/palette.js';
 import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js';
 import { Actor } from '../../engine/actor.js';
 import { RoomId, ItemId } from '../ids.js';
@@ -19,70 +19,83 @@ const DOORS: readonly Doorway[] = [
  */
 export const insideStoreScene = () =>
   paint((p) => {
-    p.ink(C.grey).box(0, 0, p.width, 122);
-    p.ink(C.white).box(0, 0, p.width, 10);
-    p.ink(C.slate).line(0, 10, p.width - 1, 10);
+    // ---- shell -------------------------------------------------------------
+    // Strip-lit and bright, but held below white: a pure-white floor blows out
+    // the whole picture and leaves the ego with nothing to read against.
+    p.ink(C.linen).box(0, 0, p.width, FLOOR);
+    p.sweep(0, 0, p.width, FLOOR, 1, -1);
+    p.slab(0, 0, p.width, 11, C.khaki, 1);
 
-    // Strip lights.
+    // Strip lights, and the wash they put on the ceiling.
     for (const lx of [56, 160, 264]) {
-      p.ink(C.white).box(lx - 28, 12, 56, 5);
-      p.ink(C.yellow).box(lx - 26, 14, 52, 2);
+      p.slab(lx - 28, 12, 56, 6, C.cream, 1);
+      p.ink(C.white).box(lx - 26, 13, 52, 2);
+      p.glow(lx, 18, 22, C.bone, 0.4, [C.linen, C.parchment, C.khaki]);
     }
 
-    // Back wall of shelving, packed with bottles.
-    p.ink(C.brown).box(20, 34, 200, 62);
-    p.ink(C.black).outline(20, 34, 200, 62);
+    // ---- back wall of shelving --------------------------------------------
+    p.slab(18, 32, 204, 66, C.woodDim, 1);
+    p.ink(C.woodDeep).box(20, 34, 200, 62);
     for (const shelfY of [34, 54, 74]) {
-      p.ink(C.slate).line(20, shelfY + 18, 219, shelfY + 18);
+      p.slab(20, shelfY + 17, 200, 3, C.brown, 1);
       for (let x = 24; x < 216; x += 9) {
-        const colour = [C.lime, C.yellow, C.teal, C.red, C.white, C.pink][(x + shelfY) % 6];
-        p.ink(colour).box(x, shelfY + 4, 5, 13);
-        p.ink(darker(colour)).dot(x, shelfY + 4).dot(x + 4, shelfY + 4);
+        const colour = [C.greenDim, C.gold, C.teal, C.crimson, C.bone, C.magenta][(x + shelfY) % 6];
+        p.ink(colour).box(x, shelfY + 4, 6, 13);
+        p.ink(shade(colour, 2)).box(x, shelfY + 6, 1, 9);
+        p.ink(shade(colour, -2)).box(x + 5, shelfY + 6, 1, 9);
+        p.ink(shade(colour, -1)).box(x + 1, shelfY + 4, 4, 1);
       }
     }
+    p.contact(18, 32, 204, 8, -2);
 
     // A sign nobody has updated in a decade.
-    p.ink(C.maroon).box(232, 30, 76, 26);
-    p.ink(C.yellow).outline(232, 30, 76, 26);
-    p.ink(C.white).box(238, 36, 64, 4).box(238, 44, 48, 4);
+    p.slab(230, 28, 80, 28, C.maroon, 1);
+    p.ink(C.gold).outline(233, 31, 74, 22);
+    p.ink(C.cream).box(238, 36, 64, 4).box(238, 44, 48, 4);
 
-    // Chill cabinet on the right.
-    p.ink(C.teal).box(236, 60, 74, 60);
-    p.ink(C.white).outline(236, 60, 74, 60);
-    p.ink(C.cyan).box(240, 64, 66, 52);
-    p.ink(C.white).line(273, 64, 273, 115);
-    p.ink(C.navy);
-    for (let y = 68; y < 112; y += 12)
-      for (let x = 244; x < 304; x += 10) p.box(x, y, 6, 9);
+    // ---- chill cabinet, right ----------------------------------------------
+    p.slab(234, 60, 78, 58, C.pewter, 1);
+    p.ink(C.tealDeep).box(238, 64, 70, 50);
+    p.sweep(238, 64, 70, 50, 1, -1);
+    p.ink(C.cyanPale).line(238, 66, 306, 66);
+    p.ink(C.silver).box(272, 64, 2, 50);
+    p.ink(C.blueDim);
+    for (let y = 70; y < 110; y += 12)
+      for (let x = 242; x < 306; x += 10) p.box(x, y, 6, 9);
+    p.ink(C.cyanLit).line(240, 68, 268, 96);
+    p.contact(234, 114, 78, 6, -2);
 
-    // The counter, the till, and the magazine rack beside it.
-    p.ink(C.brown).box(0, 96, 130, 12);
-    p.ink(C.yellow).line(0, 96, 129, 96);
-    p.ink(C.brown).box(0, 108, 130, 20);
-    p.ink(C.black).line(0, 128, 129, 128);
-    p.ink(C.slate).box(84, 82, 34, 14);
-    p.ink(C.black).box(88, 85, 26, 5);
-    p.ink(C.grey).box(90, 92, 4, 3).box(96, 92, 4, 3).box(102, 92, 4, 3);
+    // ---- counter, till and magazine rack -----------------------------------
+    p.slab(0, 94, 132, 8, C.brownLit, 1);
+    p.slab(0, 102, 132, 22, C.woodDim, 1);
+    p.sweep(0, 102, 132, 22, 0, -1);
+    p.slab(84, 80, 36, 15, C.pewter, 1);
+    p.ink(C.ink).box(88, 83, 28, 6);
+    p.ink(C.greenLit).box(90, 84, 24, 4);
+    p.ink(C.silver).box(90, 91, 4, 3).box(97, 91, 4, 3).box(104, 91, 4, 3);
+    p.contact(0, 118, 132, 6, -2);
 
-    p.ink(C.slate).box(140, 86, 62, 40);
-    p.ink(C.black).outline(140, 86, 62, 40);
+    p.slab(140, 84, 64, 42, C.asphalt, 1);
     for (let r = 0; r < 3; r++) {
-      p.ink([C.pink, C.yellow, C.cyan][r]).box(144, 90 + r * 13, 54, 10);
-      p.ink(C.black).line(144, 90 + r * 13, 197, 90 + r * 13);
-      p.ink(C.white).box(146, 93 + r * 13, 20, 4);
+      const colour = [C.pinkLit, C.goldLit, C.cyanLit][r];
+      p.slab(144, 88 + r * 13, 56, 11, colour, 1);
+      p.ink(C.cream).box(147, 91 + r * 13, 22, 4);
     }
+    p.contact(140, 122, 64, 5, -2);
 
-    // Floor.
-    p.ink(C.white).box(0, 122, p.width, p.height - 122);
-    p.ink(C.grey);
-    for (let x = 0; x < p.width; x += 22) p.line(x, 122, x, p.height - 1);
-    for (let y = 128; y < p.height; y += 12) p.line(0, y, p.width - 1, y);
-    p.ink(C.slate).line(0, 122, p.width - 1, 122);
+    // ---- floor -------------------------------------------------------------
+    // Vinyl tiles, receding, and clearly darker than the lit walls.
+    p.ink(C.bone).box(0, FLOOR, p.width, p.height - FLOOR);
+    p.sweep(0, FLOOR, p.width, p.height - FLOOR, -2, 0);
+    p.ink(C.khaki);
+    for (let i = -7; i <= 7; i++) p.line(160 + i * 20, FLOOR, 160 + i * 62, p.height - 1);
+    for (let r = 1; r < 6; r++) {
+      const y = FLOOR + (p.height - FLOOR) * Math.pow(r / 6, 1.7);
+      p.line(0, y, p.width - 1, y);
+    }
+    p.contact(0, FLOOR, p.width, 12, -2);
 
-    // Door out to the street.
-    p.ink(C.cyan).box(286, 122, 34, 46);
-    p.ink(C.slate).outline(286, 122, 34, 46);
-
+    doorways(p, DOORS);
     p.depthRamp(122, p.height, 6, 14);
     doorways(p, DOORS);
     walls(p, FLOOR, DOORS);

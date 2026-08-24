@@ -290,11 +290,19 @@ export class Painter {
    * gentle falloff does not band.
    */
   relight(x: number, y: number, w: number, h: number, steps: number): this {
+    if (!Number.isFinite(steps)) return this;
+    // Round like `plot` does. Scene code passes fractional positions freely
+    // (perspective rows, ellipse sweeps), and a fractional index reads past the
+    // typed array rather than into it.
+    const x0 = Math.round(x);
+    const y0 = Math.round(y);
+    const x1 = x0 + Math.round(w);
+    const y1 = y0 + Math.round(h);
     const whole = Math.trunc(steps);
     const frac = Math.abs(steps - whole);
     const extra = steps < 0 ? whole - 1 : whole + 1;
-    for (let py = y; py < y + h; py++) {
-      for (let px = x; px < x + w; px++) {
+    for (let py = y0; py < y1; py++) {
+      for (let px = x0; px < x1; px++) {
         if (!this.surface.inside(px, py)) continue;
         const i = this.surface.index(px, py);
         const current = this.surface.colour[i];

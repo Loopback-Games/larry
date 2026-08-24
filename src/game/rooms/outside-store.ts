@@ -19,9 +19,10 @@ const DOORS: readonly Doorway[] = [
     y: FLOOR,
     w: 40,
     h: 46,
-    colour: C.pewter,
-    through: C.cyanLit,
-    spill: C.cyanPale,
+    kind: 'double',
+    colour: C.silver,
+    through: C.tealDeep,
+    spill: C.cyanLit,
   },
   { to: RoomId.Taxi, label: 'Cab', side: 'left', y: 152, w: 36 },
 ];

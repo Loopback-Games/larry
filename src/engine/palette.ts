@@ -90,7 +90,10 @@ export const PALETTE_ABGR = new Uint32Array(
  * shading something unpainted is a no-op rather than a surprise.
  */
 export function shade(colour: number, steps: number): number {
-  if (colour <= 0 || colour >= PALETTE_SIZE) return 0;
+  // Anything not a real palette index resolves to black rather than walking off
+  // the end of the ramp table.
+  if (!Number.isInteger(colour) || colour <= 0 || colour >= PALETTE_SIZE) return 0;
+  if (!Number.isFinite(steps)) return colour;
   const ramp = RAMPS[built.rampOf[colour]];
   const base = colour - built.stepOf[colour];
   const length = ramp[1].length;

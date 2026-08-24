@@ -15,50 +15,89 @@ const DOORS: readonly Doorway[] = [
 /** Inside the chapel: six pews, a minister, and an organ playing itself. */
 export const insideChapelScene = () =>
   paint((p) => {
-    p.ink(C.brown).box(0, 0, p.width, 122);
-    p.ink(darker(C.brown)).box(0, 0, p.width, 8);
-    p.ink(C.yellow).line(0, 8, p.width - 1, 8);
+    // ---- shell -------------------------------------------------------------
+    // Panelled walls closing in on a lit apse, so the eye is pulled down the
+    // aisle to the altar rather than left wandering a flat brown field.
+    p.ink(C.brown).box(0, 0, p.width, FLOOR);
+    p.slab(0, 0, p.width, 10, C.woodDeep, 1);
 
-    // Arched window behind the altar, lit from outside.
-    p.ink(C.navy).solid([132, 70, 132, 34, 148, 18, 172, 18, 188, 34, 188, 70]);
-    p.ink(C.cyan).solid([138, 66, 138, 38, 150, 24, 170, 24, 182, 38, 182, 66]);
-    p.ink(C.pink).solid([148, 60, 148, 42, 160, 32, 172, 42, 172, 60]);
-    p.ink(C.yellow).box(158, 44, 4, 16).box(152, 50, 16, 4);
-    p.ink(C.slate).line(132, 44, 187, 44).line(160, 18, 160, 70);
+    // Side walls in perspective, dark, framing the lit end.
+    p.ink(C.brown).solid([0, 0, 96, 16, 96, FLOOR, 0, FLOOR + 30]);
+    p.ink(C.brown).solid([p.width, 0, 224, 16, 224, FLOOR, p.width, FLOOR + 30]);
+    p.sweep(0, 0, 96, FLOOR, -1, 1);
+    p.sweep(224, 0, 96, FLOOR, -1, 1);
+    p.ink(C.woodDeep);
+    for (let x = 4; x < 96; x += 22) p.line(x, 0, x, FLOOR + 20);
+    for (let x = 232; x < p.width; x += 22) p.line(x, 0, x, FLOOR + 20);
 
-    // Altar with two candlesticks and a very large book.
-    p.ink(C.white).box(126, 84, 68, 24);
-    p.ink(C.grey).outline(126, 84, 68, 24);
-    p.ink(C.pink).box(126, 84, 68, 4);
-    p.ink(C.yellow).box(134, 74, 4, 10).box(182, 74, 4, 10);
-    p.ink(C.white).dot(136, 72).dot(184, 72);
-    p.ink(C.red).box(148, 78, 24, 6);
-    p.ink(C.white).line(149, 81, 171, 81);
+    // The lit end wall.
+    p.slab(96, 16, 128, FLOOR - 16, C.brown, 1);
+    p.sweep(96, 16, 128, FLOOR - 16, 1, -1);
 
-    // Organ, stage left, with pipes.
-    p.ink(darker(C.brown)).box(14, 56, 62, 52);
-    p.ink(C.brown).outline(14, 56, 62, 52);
-    p.ink(C.yellow);
-    for (let i = 0; i < 9; i++) p.box(18 + i * 7, 30 + (i % 3) * 6, 5, 26 - (i % 3) * 6);
-    p.ink(C.white).box(20, 84, 50, 6);
-    p.ink(C.black);
-    for (let x = 22; x < 68; x += 6) p.box(x, 84, 2, 4);
+    // ---- arched window, and the light it throws ---------------------------
+    p.ink(C.navyDeep).solid([134, 74, 134, 36, 148, 18, 172, 18, 186, 36, 186, 74]);
+    p.ink(C.teal).solid([138, 70, 138, 39, 150, 23, 170, 23, 182, 39, 182, 70]);
+    p.ink(C.violet).solid([146, 62, 146, 43, 160, 30, 174, 43, 174, 62]);
+    p.ink(C.goldLit).box(158, 42, 4, 18).box(151, 48, 18, 4);
+    p.ink(C.navyDeep).line(134, 46, 185, 46).line(160, 19, 160, 73);
+    p.glow(160, 46, 40, C.brownLit, 0.45, [C.brown, C.brownLit, C.woodDim]);
+    p.lightPool(160, 60, 70, 54, 1);
 
-    // Pews.
-    for (let r = 0; r < 3; r++) {
-      const y = 118 + r * 18;
-      const inset = 30 - r * 10;
-      p.ink(C.brown).box(inset, y, 120 - inset, 6).box(200 + inset - 30, y, 120 - inset, 6);
-      p.ink(darker(C.brown)).line(inset, y + 5, 119, y + 5);
-      p.ink(darker(C.brown)).line(170 + inset, y + 5, 289 + inset - 30, y + 5);
+    // ---- altar -------------------------------------------------------------
+    p.slab(124, 82, 72, 6, C.bone, 1);
+    p.slab(128, 88, 64, 22, C.linen, 1);
+    p.sweep(128, 88, 64, 22, 0, -1);
+    p.ink(C.pinkLit).box(124, 82, 72, 2);
+    for (const cx of [134, 184]) {
+      p.slab(cx, 70, 4, 12, C.gold, 1);
+      p.ink(C.yellowPale).dot(cx + 1, 68).dot(cx + 2, 68);
+      p.glow(cx + 1, 68, 9, C.tan, 0.5, [C.brown, C.brownLit, C.linen, C.bone]);
+    }
+    p.ink(C.crimson).box(148, 76, 26, 6);
+    p.ink(C.bone).line(149, 79, 172, 79);
+    p.contact(124, 106, 72, 6, -2);
+
+    // ---- organ, stage left -------------------------------------------------
+    p.ink(C.gold);
+    for (let i = 0; i < 8; i++) {
+      const px = 20 + i * 8;
+      const top = 26 + (i % 3) * 7;
+      p.slab(px, top, 6, 62 - top + 26, C.gold, 1);
+    }
+    p.slab(14, 84, 66, 26, C.woodDim, 1);
+    p.slab(20, 90, 54, 6, C.bone, 1);
+    p.ink(C.ink);
+    for (let x = 23; x < 72; x += 6) p.box(x, 90, 2, 4);
+    p.contact(14, 104, 66, 6, -2);
+
+    // ---- floor and pews ----------------------------------------------------
+    p.floorPlane(FLOOR, p.height, C.brown, 160, 9);
+
+    // Aisle carpet, running from the altar out towards the camera.
+    p.ink(C.maroon).solid([132, FLOOR, 188, FLOOR, 208, p.height, 112, p.height]);
+    p.sweep(112, FLOOR, 96, p.height - FLOOR, -1, 1);
+    p.ink(C.crimson).path([132, FLOOR, 112, p.height]);
+    p.ink(C.crimson).path([188, FLOOR, 208, p.height]);
+
+    // Pews either side, growing and spreading as they come towards us.
+    for (let r = 0; r < 4; r++) {
+      const t = Math.pow(r / 4, 1.4);
+      const y = FLOOR + 6 + t * 48;
+      const back = 6 + t * 8;
+      const inner = 130 - t * 22;
+      const outer = 8 - t * 18;
+      for (const side of [-1, 1] as const) {
+        const x0 = side < 0 ? outer : 320 - inner;
+        const x1 = side < 0 ? inner : 320 - outer;
+        p.ink(C.brown).box(x0, y - back, x1 - x0, back);
+        p.ink(C.brownLit).box(x0, y - back, x1 - x0, 2);
+        p.ink(C.woodDeep).box(x0, y, x1 - x0, 3);
+        p.contact(x0, y + 3, x1 - x0, 4, -2);
+      }
     }
 
-    // Aisle carpet.
-    p.ink(C.maroon).box(126, 108, 68, p.height - 108);
-    p.ink(C.red).line(126, 108, 126, p.height - 1).line(193, 108, 193, p.height - 1);
-    p.ink(C.brown).box(0, 108, 126, 14).box(194, 108, 126, 14);
-    p.ink(darker(C.brown)).line(0, 122, p.width - 1, 122);
-
+    doorways(p, DOORS);
+    p.vignette(-1);
     p.depthRamp(108, p.height, 5, 14);
     doorways(p, DOORS);
     walls(p, FLOOR, DOORS);

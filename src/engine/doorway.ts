@@ -80,7 +80,8 @@ const fy = (d: Doorway) => d.y ?? CANVAS_H - BAND;
  * which is why leaving a room so often felt like an accident.
  */
 export function exitOf(d: Doorway): Exit {
-  const base = { to: d.to, label: d.label, ...(d.when ? { when: d.when } : {}) };
+  const marker = { back: '^', front: 'v', left: '<', right: '>' }[d.side];
+  const base = { to: d.to, label: d.label, marker, ...(d.when ? { when: d.when } : {}) };
   switch (d.side) {
     case 'back':
       // The band starts at the floor line, never above it: a room's horizon is
