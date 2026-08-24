@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { createGame } from '../src/game/index.js';
 import { ROOMS, ROOMS_BY_ID } from '../src/game/rooms/index.js';
-import { RoomId } from '../src/game/ids.js';
+import { RoomId, ItemId } from '../src/game/ids.js';
+import { QUESTIONS } from '../src/game/rooms/age-check.js';
 import { walkTo, exitCentre, reachable } from './navigation.js';
 import { CANVAS_W } from '../src/constants.js';
 
@@ -116,6 +117,60 @@ describe('walking the map', () => {
       expect(g.roomId, `walking from ${room.id}`).toBe(target);
       while (g.dismissMessage());
     }
+  });
+
+  it('plays the opening act with no teleporting at all', () => {
+    // Every room change here happens by walking. Nothing calls goTo, so this
+    // exercises navigation and puzzle handling together, the way a player does.
+    const g = fresh();
+    const drain = () => {
+      while (g.dismissMessage());
+    };
+    const type = (line: string) => {
+      drain();
+      g.submit(line);
+      drain();
+    };
+    const walkThrough = (to: string) => {
+      const room = ROOMS_BY_ID.get(g.roomId)!;
+      const exit = room.exits?.find((e) => e.to === to);
+      expect(exit, `no exit from ${g.roomId} to ${to}`).toBeDefined();
+      expect(walkTo(g, exitCentre(exit!)), `stuck walking ${g.roomId} -> ${to}`).toBe(true);
+      for (let i = 0; i < 10 && g.roomId !== to; i++) g.tick();
+      drain();
+      expect(g.roomId).toBe(to);
+    };
+
+    type(''); // title card
+    for (let i = 0; i < 12 && g.roomId === RoomId.AgeCheck; i++) {
+      const seed = g.counter('quizSeed');
+      const index = g.counter('quizIndex');
+      type(QUESTIONS[(seed + index * 3) % QUESTIONS.length].answers[0]);
+    }
+    expect(g.roomId).toBe(RoomId.OutsideBar);
+
+    walkThrough(RoomId.InsideBar);
+    type('buy whiskey');
+    expect(g.score).toBe(1);
+
+    walkThrough(RoomId.BarHallway);
+    type('get rose');
+    type('give whiskey to drunk');
+    type('get remote');
+    expect(g.score).toBe(4);
+
+    walkThrough(RoomId.BarToilet);
+    type('sit down');
+    type('read the wall');
+    type('open the cistern');
+    expect(g.score).toBe(10);
+    expect(g.has(ItemId.Ring)).toBe(true);
+
+    walkThrough(RoomId.BarHallway);
+    walkThrough(RoomId.BarBackroom);
+    type('use remote');
+    type('use remote');
+    expect(g.score).toBe(21);
   });
 
   it('keeps the ego on screen and correctly scaled', () => {
