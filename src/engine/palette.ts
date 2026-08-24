@@ -44,3 +44,13 @@ export const C = {
 } as const;
 
 export type Colour = (typeof C)[keyof typeof C];
+
+/**
+ * Nearest darker companion for each palette entry, used for shading and
+ * outlines so figures read against backgrounds of similar brightness.
+ */
+const SHADE: readonly number[] = [0, 0, 0, 1, 0, 0, 0, 8, 0, 1, 2, 3, 4, 5, 6, 7];
+
+export function darker(colour: number): number {
+  return SHADE[colour & 0x0f];
+}

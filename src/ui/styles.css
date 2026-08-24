@@ -1,0 +1,303 @@
+:root {
+  --bg: #0b0b12;
+  --panel: #161622;
+  --panel-2: #1f1f30;
+  --line: #2e2e44;
+  --text: #e8e8f2;
+  --muted: #9a9ab4;
+  --accent: #f2c14e;
+  --accent-dim: #7a6427;
+  --touch: 44px;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  overscroll-behavior: none;
+}
+
+body {
+  /* Stop iOS rubber-banding while the player drags on the pad. */
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+}
+
+#app {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100dvh;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+}
+
+/* ---- title bar ---------------------------------------------------------- */
+
+#titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+
+#titlebar h1 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+#titlebar button {
+  min-width: var(--touch);
+  min-height: 36px;
+  font-size: 18px;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#titlebar button:hover,
+#titlebar button:focus-visible {
+  color: var(--text);
+  border-color: var(--accent-dim);
+}
+
+/* ---- stage -------------------------------------------------------------- */
+
+#stage {
+  position: relative;
+  min-height: 0;
+  padding: 8px;
+  background: #000;
+}
+
+/*
+ * The canvas is taken out of flow on purpose. A canvas is a replaced element,
+ * so if it stayed in flow its backing-store size would feed back into the
+ * layout and the two would grow each other without bound. Absolute positioning
+ * makes the stage's box the single source of truth; the renderer letterboxes
+ * the 320x200 framebuffer inside whatever box it is given.
+ */
+#screen {
+  position: absolute;
+  inset: 8px;
+  display: block;
+  width: calc(100% - 16px);
+  height: calc(100% - 16px);
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  background: #000;
+  cursor: crosshair;
+}
+
+/* ---- controls ----------------------------------------------------------- */
+
+#controls {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: end;
+  padding: 8px 10px 10px;
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+}
+
+#dpad {
+  display: grid;
+  grid-template-columns: repeat(3, var(--touch));
+  grid-template-rows: repeat(3, var(--touch));
+  gap: 2px;
+}
+
+.pad {
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  color: var(--muted);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.pad:active,
+.pad[data-held="true"] {
+  color: #000;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.pad.up { grid-area: 1 / 2; }
+.pad.left { grid-area: 2 / 1; }
+.pad.stop { grid-area: 2 / 2; font-size: 11px; }
+.pad.right { grid-area: 2 / 3; }
+.pad.down { grid-area: 3 / 2; }
+
+#entry {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+#command-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: #000;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+#command-form .prompt {
+  color: var(--accent);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+#command {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 16px; /* 16px keeps iOS from zooming on focus. */
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  outline: none;
+}
+
+#command::placeholder {
+  color: #55556e;
+}
+
+#send {
+  min-width: 40px;
+  min-height: 34px;
+  font-size: 16px;
+  color: #000;
+  background: var(--accent);
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 68px;
+  overflow-y: auto;
+}
+
+.chip {
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.chip:hover,
+.chip:focus-visible {
+  border-color: var(--accent-dim);
+}
+
+/* ---- menu --------------------------------------------------------------- */
+
+#menu {
+  width: min(360px, 92vw);
+  padding: 18px;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+#menu::backdrop {
+  background: rgb(0 0 0 / 0.65);
+}
+
+#menu h2 {
+  margin: 0 0 14px;
+  font-size: 15px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.menu-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.menu-actions button,
+#menu .close {
+  width: 100%;
+  min-height: var(--touch);
+  font-size: 15px;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+#menu .close {
+  margin-top: 14px;
+  color: #000;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---- wide screens ------------------------------------------------------- */
+
+@media (min-width: 900px) and (min-height: 620px) {
+  #controls {
+    grid-template-columns: auto minmax(0, 720px) auto;
+    justify-content: center;
+  }
+  #dpad {
+    /* On desktop the arrow keys do this job, so the pad is a smaller affordance. */
+    --touch: 38px;
+    opacity: 0.75;
+  }
+  #chips {
+    max-height: none;
+  }
+}
+
+@media (pointer: fine) {
+  .pad {
+    font-size: 13px;
+  }
+}

@@ -2,11 +2,15 @@
  * The game renders to a small fixed logical canvas and scales up with nearest
  * neighbour, which is what gives it the late-80s look on any display.
  */
-export const CANVAS_W = 160;
+export const CANVAS_W = 320;
 export const CANVAS_H = 168;
 
-/** Pixels are drawn twice as wide as they are tall, as on period hardware. */
-export const PIXEL_ASPECT = 2;
+/**
+ * Scene pixels are square. Authoring at the full 320 rather than at 160 and
+ * doubling keeps figures correctly proportioned and gives twice the horizontal
+ * detail for the same cost.
+ */
+export const PIXEL_ASPECT = 1;
 
 /** Logical display size once the aspect correction is applied. */
 export const DISPLAY_W = CANVAS_W * PIXEL_ASPECT;

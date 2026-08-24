@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1"
+    />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0b0b12" />
+    <title>Leisure Suit Larry — Lost Wages</title>
+    <meta
+      name="description"
+      content="An original parser adventure for desktop and mobile browsers."
+    />
+    <link rel="stylesheet" href="/src/ui/styles.css" />
+  </head>
+  <body>
+    <div id="app" data-state="loading">
+      <header id="titlebar">
+        <button id="menu-button" type="button" aria-label="Menu" aria-haspopup="dialog">☰</button>
+        <h1>Lost Wages</h1>
+        <button id="fullscreen-button" type="button" aria-label="Toggle fullscreen">⛶</button>
+      </header>
+
+      <main id="stage">
+        <canvas id="screen" width="640" height="400" aria-label="Game screen" role="img"></canvas>
+      </main>
+
+      <section id="controls" aria-label="Game controls">
+        <div id="dpad" role="group" aria-label="Movement pad">
+          <button class="pad up" data-dir="0,-1" type="button" aria-label="Walk up">▲</button>
+          <button class="pad left" data-dir="-1,0" type="button" aria-label="Walk left">◀</button>
+          <button class="pad stop" data-dir="0,0" type="button" aria-label="Stand still">■</button>
+          <button class="pad right" data-dir="1,0" type="button" aria-label="Walk right">▶</button>
+          <button class="pad down" data-dir="0,1" type="button" aria-label="Walk down">▼</button>
+        </div>
+
+        <div id="entry">
+          <form id="command-form" autocomplete="off">
+            <label class="visually-hidden" for="command">Type a command</label>
+            <span class="prompt" aria-hidden="true">&gt;</span>
+            <input
+              id="command"
+              name="command"
+              type="text"
+              inputmode="text"
+              autocapitalize="none"
+              autocorrect="off"
+              spellcheck="false"
+              placeholder="look at the sign"
+              enterkeyhint="send"
+            />
+            <button id="send" type="submit" aria-label="Send command">↵</button>
+          </form>
+          <div id="chips" role="group" aria-label="Common actions"></div>
+        </div>
+      </section>
+
+      <dialog id="menu">
+        <h2>Menu</h2>
+        <div class="menu-actions">
+          <button type="button" data-action="save">Save game</button>
+          <button type="button" data-action="restore">Restore game</button>
+          <button type="button" data-action="restart">Restart</button>
+          <button type="button" data-action="sound">Sound: on</button>
+          <button type="button" data-action="help">How to play</button>
+          <button type="button" data-action="about">About</button>
+        </div>
+        <button type="button" class="close" data-action="close">Close</button>
+      </dialog>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
