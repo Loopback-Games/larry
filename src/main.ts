@@ -5,6 +5,7 @@ import { compose } from './engine/display.js';
 import { AudioEngine } from './platform/audio.js';
 import { installChips } from './ui/chips.js';
 import { installMenu } from './ui/menu.js';
+import { QUESTIONS } from './game/rooms/age-check.js';
 
 /** Logical simulation rate. Deliberately unhurried, like the games this follows. */
 const TICK_MS = 100;
@@ -22,7 +23,45 @@ function boot(): void {
   });
 
   const renderer = new CanvasRenderer(canvas);
-  app.dataset.state = 'ready';
+
+  /**
+   * A small handle on the running game, for automated tests and for anyone who
+   * wants to poke at it from the console. Read-mostly; nothing here is required
+   * for play.
+   */
+  Object.defineProperty(window, 'larry', {
+    value: {
+      get room() {
+        return game.roomId;
+      },
+      get score() {
+        return game.score;
+      },
+      get moves() {
+        return game.moves;
+      },
+      get message() {
+        return game.pendingMessage;
+      },
+      get inventory() {
+        return game.inventory;
+      },
+      get ego() {
+        return { x: game.ego.x, y: game.ego.y, facing: game.ego.facing };
+      },
+      /** The answer to the door question currently on screen. */
+      quizAnswer(): string {
+        const seed = game.counter('quizSeed');
+        const index = game.counter('quizIndex');
+        return QUESTIONS[(seed + index * 3) % QUESTIONS.length].answers[0];
+      },
+      goTo: (room: string) => game.goTo(room),
+      submit: (line: string) => game.submit(line),
+      save: () => game.save(),
+      restore: () => game.restore(),
+    },
+    configurable: true,
+  });
 
   // ---- rendering ---------------------------------------------------------
 
@@ -41,6 +80,9 @@ function boot(): void {
     }
     renderer.resize();
     renderer.draw(compose(game.renderFrame(), { input: input.value, cursorOn }));
+    // Only claim readiness once a frame has actually been presented, so the
+    // canvas has been sized and painted before anything measures it.
+    if (app.dataset.state !== 'ready') app.dataset.state = 'ready';
     requestAnimationFrame(loop);
   };
   requestAnimationFrame(loop);
