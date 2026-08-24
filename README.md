@@ -124,14 +124,15 @@ meant to be worth. It has already caught real defects that unit tests missed.
 
 ## Deploying
 
-The site is a static bundle served from GitHub Pages at `/larry/`:
+Pushing to `main` builds and publishes the site through GitHub Actions. There is
+no build-output branch: the artifact goes straight from the build job to Pages.
 
-```sh
-npm run build
-npm run deploy     # publishes dist/ to the gh-pages branch
-```
+`.github/workflows/deploy.yml` type-checks, runs the unit tests, builds, deploys,
+and then runs the browser suite **against the URL it just published**. A deploy
+that produces a broken site fails the run.
 
-`BASE_PATH` overrides the base URL if you serve it from somewhere else.
+`BASE_PATH` overrides the base URL if you serve it from somewhere else; the
+workflow sets it from the Pages configuration automatically.
 
 ---
 

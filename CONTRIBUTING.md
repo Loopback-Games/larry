@@ -32,3 +32,6 @@ npm run build      # includes the type-check
 npm test
 npm run test:e2e
 ```
+
+CI runs the same commands. Deployment is automatic on merge to `main`; nothing
+needs publishing by hand.
