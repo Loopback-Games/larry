@@ -1,9 +1,12 @@
 name: CI
 
+# Runs on pull requests, and is called by deploy.yml before it publishes, so a
+# push to main tests and ships in one run rather than racing two workflows that
+# know nothing about each other.
 on:
-  push:
-    branches: [main]
   pull_request:
+  workflow_call:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -12,124 +15,66 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  NODE_VERSION: '22'
-
 jobs:
-  # Fast feedback: a type error or a broken room should not wait on a browser.
   check:
-    name: Type-check and tests
+    name: just ci
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
+
+    # The same image .devcontainer/Containerfile builds on, so the browser and
+    # the system libraries behind it are identical here and on a laptop. It is
+    # also why there is no `playwright install --with-deps` step and no browser
+    # cache: the browsers are already in the image.
+    #
+    # The tag must match @playwright/test in package.json; `just lint-versions`
+    # fails if they drift. Chromium crashes on the 64MB of /dev/shm a container
+    # gets by default.
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble@sha256:dcc5531e97840b9b5e794f2814476b21571c5124a3fca2267d73041f56e7580e
+      options: --shm-size=1g
+
+    # A container job runs as root but is handed HOME=/github/home, a mount
+    # owned by the image's pwuser, and the browser refuses to start when $HOME
+    # belongs to somebody else. It also puts mise where the image expects it.
+    env:
+      HOME: /root
+
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
+          # gitleaks reads the history, not the tip: a key that was committed
+          # and then deleted is still a key that was published.
+          fetch-depth: 0
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      # Every tool comes from mise.toml. There is deliberately no node version
+      # named here — doing that is how this repository ended up with four
+      # disagreeing answers to which Node it runs.
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c  # v4.3.0
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          cache: true
 
-      - run: npm ci
-      - name: Type-check
-        run: npm run typecheck
-      - name: Unit, world, traversal and walkthrough tests
-        run: npm test
-      - name: Build
-        run: npm run build
+      # The one command: install, lint, audit, test, build, browser tests, and
+      # the room sheet. There is no list of steps in this file that can drift
+      # from the justfile.
+      - run: just ci
 
-      - name: Check the bundle has not ballooned
-        run: node tools/size-budget.mjs
-
-  browser:
-    name: Browser tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # Room art is written as code, so a diff of a scene says nothing about
+      # what changed on screen. `just art` renders the lot; this is what makes
+      # it reviewable.
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        if: always()
         with:
-          persist-credentials: false
+          name: room-sheet
+          path: rooms*.png
+          retention-days: 14
+          # An earlier gate failing means `art` never ran and there is nothing
+          # to upload, which is not itself a failure.
+          if-no-files-found: ignore
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-
-      - run: npm ci
-
-      # Browsers are ~150MB; caching them turns a minute into a few seconds.
-      - name: Resolve the Playwright version
-        id: pw
-        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
-
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        id: browser-cache
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
-
-      - name: Install browsers
-        run: npx playwright install --with-deps chromium
-        if: steps.browser-cache.outputs.cache-hit != 'true'
-
-      - name: Install system dependencies
-        run: npx playwright install-deps chromium
-        if: steps.browser-cache.outputs.cache-hit == 'true'
-
-      - run: npm run build
-      - run: npm run test:e2e
-
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         if: failure()
         with:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
-
-  # Room art is written as code, so a diff of a scene says nothing about what
-  # changed on screen. Render the lot and attach it, so an art change can be
-  # looked at rather than guessed at.
-  art:
-    name: Render the room sheet
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-
-      - run: npm ci
-
-      - name: Render every room
-        run: |
-          node tools/room-sheet.mjs rooms.png colour
-          node tools/room-sheet.mjs rooms-walk.png walk
-
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: room-sheet
-          path: rooms*.png
-          retention-days: 14
-
-  workflows:
-    name: Lint workflows
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: actionlint
-        run: |
-          bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.7/scripts/download-actionlint.bash) 1.7.7
-          ./actionlint -color .github/workflows/*.yml
-
-      - name: zizmor
-        run: pipx run zizmor==1.29.0 --persona=regular .github/workflows/

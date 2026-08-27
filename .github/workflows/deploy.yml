@@ -8,50 +8,43 @@ on:
 permissions:
   contents: read
 
-env:
-  NODE_VERSION: '22'
-
 # Never cancel a deploy midway; queue it behind the one in flight instead.
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
+  # The full gate, in the same container a developer gets. The site is only
+  # published if it passes the same checks that run locally.
+  verify:
+    uses: ./.github/workflows/ci.yml
+
   build:
     name: Build the site
+    needs: verify
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c  # v4.3.0
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          cache: true
 
       - run: npm ci
 
-      # The site is only published if it passes the same checks run locally.
-      - name: Type-check
-        run: npm run typecheck
-
-      - name: Unit and integration tests
-        run: npm test
-
-      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d  # v6.0.0
         id: pages
 
-      - name: Build
-        run: npm run build
+      # The base path comes from configure-pages rather than being hard-coded,
+      # so renaming the repository does not silently break every asset URL.
+      - run: just build
         env:
-          BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}/
 
-      - name: Check the bundle has not ballooned
-        run: node tools/size-budget.mjs
-
-      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9  # v5.0.0
         with:
           path: dist
 
@@ -69,46 +62,33 @@ jobs:
     outputs:
       page_url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
+      - uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128  # v5.0.0
         id: deployment
 
-  verify:
+  # The same browser suite, against the URL that was just published. A build
+  # that passes every gate can still land on a Pages configuration that serves
+  # it from somewhere the base path does not expect.
+  verify-live:
     name: Verify the deployed site
     needs: deploy
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble@sha256:dcc5531e97840b9b5e794f2814476b21571c5124a3fca2267d73041f56e7580e
+      options: --shm-size=1g
+    env:
+      HOME: /root
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c  # v4.3.0
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          cache: true
 
       - run: npm ci
 
-      - name: Resolve the Playwright version
-        id: pw
-        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
-
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        id: browser-cache
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
-
-      - name: Install browsers
-        run: npx playwright install --with-deps chromium
-        if: steps.browser-cache.outputs.cache-hit != 'true'
-
-      - name: Install system dependencies
-        run: npx playwright install-deps chromium
-        if: steps.browser-cache.outputs.cache-hit == 'true'
-
-      # The same browser suite, run against the URL that was just published.
-      - name: Browser tests against the live site
-        run: npm run test:e2e
+      - run: just verify-live "$PAGE_URL"
         env:
-          E2E_BASE_URL: ${{ needs.deploy.outputs.page_url }}
+          PAGE_URL: ${{ needs.deploy.outputs.page_url }}
