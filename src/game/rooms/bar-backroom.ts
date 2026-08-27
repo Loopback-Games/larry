@@ -6,7 +6,6 @@ import { WALK_FREE } from '../../constants.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
 
-
 /** Where the floor meets the back of the room. */
 const FLOOR = 130;
 
@@ -170,8 +169,16 @@ export const barBackroom: RoomDef = {
           : 'A television tuned to a channel that stopped broadcasting some ' +
             'years ago. He is watching it anyway.',
     },
-    { noun: 'stairs', synonyms: ['staircase', 'steps'], look: 'Wooden stairs leading up to a landing and a closed door.' },
-    { noun: 'crates', synonyms: ['crate', 'boxes', 'box'], look: 'Beer crates, mostly empty, stacked by someone with no interest in stacking.' },
+    {
+      noun: 'stairs',
+      synonyms: ['staircase', 'steps'],
+      look: 'Wooden stairs leading up to a landing and a closed door.',
+    },
+    {
+      noun: 'crates',
+      synonyms: ['crate', 'boxes', 'box'],
+      look: 'Beer crates, mostly empty, stacked by someone with no interest in stacking.',
+    },
   ],
 
   exits: exitsOf(DOORS),

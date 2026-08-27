@@ -7,7 +7,13 @@
  */
 
 const NOTE_OFFSETS: Readonly<Record<string, number>> = {
-  c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11,
+  c: 0,
+  d: 2,
+  e: 4,
+  f: 5,
+  g: 7,
+  a: 9,
+  b: 11,
 };
 
 /** Convert scientific pitch notation ("c4", "f#5", "-" for a rest) to Hz. */
@@ -38,10 +44,27 @@ export const CUES: Readonly<Record<string, Cue>> = {
     wave: 'square',
     gain: 0.16,
     notes: [
-      'c4:1', 'e4:0.5', 'g4:0.5', 'a4:1', 'g4:1',
-      'f4:1', 'a4:0.5', 'c5:0.5', 'd5:1', 'c5:1',
-      'e4:1', 'g4:0.5', 'b4:0.5', 'c5:1', 'b4:1',
-      'a4:0.5', 'g4:0.5', 'f4:0.5', 'e4:0.5', 'd4:1', 'c4:1',
+      'c4:1',
+      'e4:0.5',
+      'g4:0.5',
+      'a4:1',
+      'g4:1',
+      'f4:1',
+      'a4:0.5',
+      'c5:0.5',
+      'd5:1',
+      'c5:1',
+      'e4:1',
+      'g4:0.5',
+      'b4:0.5',
+      'c5:1',
+      'b4:1',
+      'a4:0.5',
+      'g4:0.5',
+      'f4:0.5',
+      'e4:0.5',
+      'd4:1',
+      'c4:1',
     ],
   },
   coin: {
@@ -72,10 +95,7 @@ export const CUES: Readonly<Record<string, Cue>> = {
     tempo: 150,
     wave: 'square',
     gain: 0.18,
-    notes: [
-      'c5:0.5', 'e5:0.5', 'g5:0.5', 'c6:1.5',
-      'g5:0.5', 'c6:2',
-    ],
+    notes: ['c5:0.5', 'e5:0.5', 'g5:0.5', 'c6:1.5', 'g5:0.5', 'c6:2'],
   },
   score: {
     tempo: 420,

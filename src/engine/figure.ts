@@ -155,7 +155,12 @@ export function drawFigure(
     const armLen = at(18) - armTop;
     if (side) {
       q.box(cx + dir * shoulderHalf - (dir < 0 ? 1 : 0), armTop + swing, 2, armLen);
-      q.ink(skin).box(cx + dir * shoulderHalf - (dir < 0 ? 1 : 0), armTop + armLen + swing, 2, 2);
+      q.ink(skin).box(
+        cx + dir * shoulderHalf - (dir < 0 ? 1 : 0),
+        armTop + armLen + swing,
+        2,
+        2,
+      );
     } else {
       q.box(cx - shoulderHalf - 2, armTop, 2, armLen + swing);
       q.box(cx + shoulderHalf, armTop, 2, armLen - swing);
@@ -179,7 +184,9 @@ export function drawFigure(
     ]);
 
     if (facing === 'front') {
-      q.ink(C.black).dot(cx - 2, at(4)).dot(cx + 1, at(4));
+      q.ink(C.black)
+        .dot(cx - 2, at(4))
+        .dot(cx + 1, at(4));
       q.ink(darker(skin)).dot(cx, at(6));
     } else if (side) {
       q.ink(C.black).dot(cx + dir, at(4));

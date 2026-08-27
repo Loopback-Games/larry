@@ -14,7 +14,7 @@ This project is a **from-scratch reimplementation**. Every line of code, every
 pixel of artwork, every line of writing and every note of music here is
 original work produced for this repository.
 
-It follows the *structure* of a well-known 1987 adventure game — the shape of
+It follows the _structure_ of a well-known 1987 adventure game — the shape of
 the city, the chain of puzzles, the 222-point scoring — because that structure
 is what makes the genre work. Game mechanics and puzzle structure are not
 copyrightable; the expression of them is. So none of the expression is reused:
@@ -67,7 +67,7 @@ Node 20 or newer.
 
 Roughly 3,000 lines of TypeScript with no runtime dependencies. The built game
 is about 58 KB gzipped, all of it code — there are no asset downloads, because
-the artwork *is* code.
+the artwork _is_ code.
 
 ```
 src/
@@ -90,7 +90,7 @@ p.depthRamp(122, p.height, 5, 14);
 Every scene carries three planes: **colour** for the picture, **depth** for
 deciding whether a character walks in front of or behind the scenery, and
 **walk** for where a character may go at all. Keeping them separate means a
-waist-high counter can be solid *and* have someone stand behind it.
+waist-high counter can be solid _and_ have someone stand behind it.
 
 **Characters are parametric.** One humanoid rig is drawn from a style record,
 so the whole cast — Larry, the bartender, Fawn, the doorman, Eve — shares

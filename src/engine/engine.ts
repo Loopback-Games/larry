@@ -525,7 +525,8 @@ export class Game {
     const free = (x: number, y: number) => this.canOccupy(x, y, half(y));
     if (!free(to.x, to.y)) return null;
 
-    const cell = (x: number, y: number) => Math.round(y / STEP) * CANVAS_W + Math.round(x / STEP);
+    const cell = (x: number, y: number) =>
+      Math.round(y / STEP) * CANVAS_W + Math.round(x / STEP);
     const start = { x: Math.round(from.x), y: Math.round(from.y) };
     const seen = new Set<number>([cell(start.x, start.y)]);
     const prev = new Map<number, Point>();
@@ -617,7 +618,11 @@ export class Game {
           return;
         }
         actor.faceTowards(point[0], point[1]);
-        actor.moving = this.moveActor(actor, Math.sign(dx) * actor.speed, Math.sign(dy) * actor.speed);
+        actor.moving = this.moveActor(
+          actor,
+          Math.sign(dx) * actor.speed,
+          Math.sign(dy) * actor.speed,
+        );
         if (actor.moving) actor.advanceAnimation();
         break;
       }
@@ -629,7 +634,11 @@ export class Game {
           return;
         }
         actor.faceTowards(b.target.x, b.target.y);
-        actor.moving = this.moveActor(actor, Math.sign(dx) * actor.speed, Math.sign(dy) * actor.speed);
+        actor.moving = this.moveActor(
+          actor,
+          Math.sign(dx) * actor.speed,
+          Math.sign(dy) * actor.speed,
+        );
         if (actor.moving) actor.advanceAnimation();
         break;
       }
@@ -738,10 +747,7 @@ export class Game {
     const locked = typeof exit.when?.(this) === 'string';
     const text = `${locked ? 'x' : (exit.marker ?? '^')} ${exit.label}`;
     const width = painter.textWidth(text);
-    const x = Math.min(
-      CANVAS_W - width - 3,
-      Math.max(3, Math.round(this.ego.x - width / 2)),
-    );
+    const x = Math.min(CANVAS_W - width - 3, Math.max(3, Math.round(this.ego.x - width / 2)));
     const top = Math.max(1, Math.round(this.ego.y - this.ego.height * this.ego.scale) - 11);
 
     painter.saved((p) => {
@@ -931,7 +937,10 @@ export class Game {
 
   private inventoryText(): string[] {
     if (this.inventoryItems.size === 0) return ['You are carrying nothing at all.'];
-    return ['You are carrying:', ...[...this.inventoryItems].map((i) => `  ${this.itemName(i)}`)];
+    return [
+      'You are carrying:',
+      ...[...this.inventoryItems].map((i) => `  ${this.itemName(i)}`),
+    ];
   }
 
   /** Overridden by the game layer. */
@@ -941,7 +950,7 @@ export class Game {
     if (cmd.object && !this.hotspot(cmd.object) && !this.has(cmd.object)) {
       return 'You do not see that here.';
     }
-    return "That is not something you can do just now.";
+    return 'That is not something you can do just now.';
   }
 
   // ---- persistence -------------------------------------------------------
@@ -1022,8 +1031,14 @@ export interface Point {
 }
 
 const NEIGHBOURS = [
-  [1, 0], [-1, 0], [0, 1], [0, -1],
-  [1, 1], [1, -1], [-1, 1], [-1, -1],
+  [1, 0],
+  [-1, 0],
+  [0, 1],
+  [0, -1],
+  [1, 1],
+  [1, -1],
+  [-1, 1],
+  [-1, -1],
 ] as const;
 
 /**

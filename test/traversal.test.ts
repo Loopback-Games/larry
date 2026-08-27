@@ -80,7 +80,14 @@ describe('walking the map', () => {
       while (g.dismissMessage());
 
       // Shove hard in every direction for a while and check the invariant holds.
-      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1]] as const) {
+      for (const [dx, dy] of [
+        [1, 0],
+        [-1, 0],
+        [0, 1],
+        [0, -1],
+        [1, 1],
+        [-1, -1],
+      ] as const) {
         g.goTo(room.id);
         while (g.dismissMessage());
         g.steer(dx, dy);
@@ -112,7 +119,9 @@ describe('walking the map', () => {
       const room = ROOMS_BY_ID.get(g.roomId)!;
       const exit = room.exits?.find((e) => e.to === target);
       expect(exit, `no exit from ${g.roomId} to ${target}`).toBeDefined();
-      expect(walkTo(g, exitCentre(exit!)), `could not walk ${g.roomId} -> ${target}`).toBe(true);
+      expect(walkTo(g, exitCentre(exit!)), `could not walk ${g.roomId} -> ${target}`).toBe(
+        true,
+      );
       for (let i = 0; i < 10 && g.roomId !== target; i++) g.tick();
       expect(g.roomId, `walking from ${room.id}`).toBe(target);
       while (g.dismissMessage());

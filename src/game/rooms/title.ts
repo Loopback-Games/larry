@@ -88,7 +88,11 @@ export const title: RoomDef = {
   populate: () => [LARRY_ON_TITLE],
 
   hotspots: [
-    { noun: 'sign', synonyms: ['title', 'neon'], look: 'LOST WAGES. An adventure in poor judgement.' },
+    {
+      noun: 'sign',
+      synonyms: ['title', 'neon'],
+      look: 'LOST WAGES. An adventure in poor judgement.',
+    },
   ],
 
   onEnter(g) {

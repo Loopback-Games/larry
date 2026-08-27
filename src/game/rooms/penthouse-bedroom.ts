@@ -43,7 +43,7 @@ export const penthouseBedroomScene = () =>
     p.ink(C.slate).line(14, 34, 72, 34);
     for (const hx of [22, 34, 46, 58]) {
       p.ink(C.grey).line(hx, 34, hx, 40);
-      p.ink([C.white, C.red, C.cyan, C.yellow][(hx / 12) % 4 | 0]).box(hx - 6, 40, 12, 40);
+      p.ink([C.white, C.red, C.cyan, C.yellow][((hx / 12) % 4) | 0]).box(hx - 6, 40, 12, 40);
     }
     p.ink(C.pink).box(18, 96, 50, 16);
     p.ink(darker(C.pink)).line(18, 96, 67, 96);
@@ -77,16 +77,32 @@ export const penthouseBedroom: RoomDef = {
   },
 
   describe:
-    'A bedroom the size of your mother\'s house, with a bed you could land an ' +
+    "A bedroom the size of your mother's house, with a bed you could land an " +
     'aircraft on and a wardrobe standing open. Whoever lives here owns a great ' +
     'many clothes and, folded on the floor of the wardrobe, one item that is ' +
     'not clothes.',
 
   hotspots: [
-    { noun: 'bed', synonyms: ['large bed'], look: 'It is enormous, and made, and has clearly not been slept in tonight.' },
-    { noun: 'wardrobe', synonyms: ['closet', 'cupboard'], look: 'A wardrobe of expensive clothes, and something pink folded flat at the bottom of it.' },
-    { noun: 'window', synonyms: ['curtains', 'curtain'], look: 'Purple curtains, half drawn, and the city going about its business a long way below.' },
-    { noun: 'clothes', synonyms: ['dresses', 'suits'], look: 'Not your size, not your colour, not your price bracket.' },
+    {
+      noun: 'bed',
+      synonyms: ['large bed'],
+      look: 'It is enormous, and made, and has clearly not been slept in tonight.',
+    },
+    {
+      noun: 'wardrobe',
+      synonyms: ['closet', 'cupboard'],
+      look: 'A wardrobe of expensive clothes, and something pink folded flat at the bottom of it.',
+    },
+    {
+      noun: 'window',
+      synonyms: ['curtains', 'curtain'],
+      look: 'Purple curtains, half drawn, and the city going about its business a long way below.',
+    },
+    {
+      noun: 'clothes',
+      synonyms: ['dresses', 'suits'],
+      look: 'Not your size, not your colour, not your price bracket.',
+    },
   ],
 
   exits: exitsOf(DOORS),
@@ -94,7 +110,9 @@ export const penthouseBedroom: RoomDef = {
   onCommand(g, cmd) {
     if (cmd.is('get', ItemId.Doll) || (cmd.verb === 'look in' && cmd.object === 'wardrobe')) {
       if (g.has(ItemId.Doll)) {
-        g.say('You have the doll. You are carrying a deflated inflatable woman around a penthouse.');
+        g.say(
+          'You have the doll. You are carrying a deflated inflatable woman around a penthouse.',
+        );
         return true;
       }
       g.give(ItemId.Doll);
@@ -122,7 +140,7 @@ export const penthouseBedroom: RoomDef = {
       g.award(5, 'inflated-doll');
       g.cue('score');
       g.say(
-        'You sit on the end of a stranger\'s enormous bed at five in the ' +
+        "You sit on the end of a stranger's enormous bed at five in the " +
           'morning and blow up an inflatable doll.',
         'It takes nine minutes and most of what you have left. At the end of ' +
           'it you are light-headed, and she is smiling in a way that suggests ' +

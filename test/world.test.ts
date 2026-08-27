@@ -81,9 +81,10 @@ describe('world integrity', () => {
 
       for (const exit of room.exits ?? []) {
         expect(exit.label, `${room.id} -> ${exit.to} has no label`).toBeTruthy();
-        expect(exit.label.length, `${room.id} -> ${exit.to}: label is too long to fit`).toBeLessThan(
-          16,
-        );
+        expect(
+          exit.label.length,
+          `${room.id} -> ${exit.to}: label is too long to fit`,
+        ).toBeLessThan(16);
         expect(exit.marker, `${room.id} -> ${exit.to} has no direction marker`).toBeTruthy();
 
         // Small and deliberate. The old hand-written rectangles included an

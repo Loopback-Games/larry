@@ -5,7 +5,6 @@ import { Actor } from '../../engine/actor.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
 
-
 /** Where the floor meets the back of the room. */
 const FLOOR = 122;
 
@@ -39,7 +38,9 @@ export const insideStoreScene = () =>
     for (const shelfY of [34, 54, 74]) {
       p.slab(20, shelfY + 17, 200, 3, C.brown, 1);
       for (let x = 24; x < 216; x += 9) {
-        const colour = [C.greenDim, C.gold, C.teal, C.crimson, C.bone, C.magenta][(x + shelfY) % 6];
+        const colour = [C.greenDim, C.gold, C.teal, C.crimson, C.bone, C.magenta][
+          (x + shelfY) % 6
+        ];
         p.ink(colour).box(x, shelfY + 4, 6, 13);
         p.ink(shade(colour, 2)).box(x, shelfY + 6, 1, 9);
         p.ink(shade(colour, -2)).box(x + 5, shelfY + 6, 1, 9);
@@ -60,8 +61,7 @@ export const insideStoreScene = () =>
     p.ink(C.cyanPale).line(238, 66, 306, 66);
     p.ink(C.silver).box(272, 64, 2, 50);
     p.ink(C.blueDim);
-    for (let y = 70; y < 110; y += 12)
-      for (let x = 242; x < 306; x += 10) p.box(x, y, 6, 9);
+    for (let y = 70; y < 110; y += 12) for (let x = 242; x < 306; x += 10) p.box(x, y, 6, 9);
     p.ink(C.cyanLit).line(240, 68, 268, 96);
     p.contact(234, 114, 78, 6, -2);
 
@@ -155,9 +155,21 @@ export const insideStore: RoomDef = {
       synonyms: ['magazines', 'magazine rack', 'shelf'],
       look: 'A rack of magazines arranged so that the interesting ones are at adult eye level.',
     },
-    { noun: 'counter', synonyms: ['till', 'register'], look: 'A worn counter with a till and a jar of something pickled.' },
-    { noun: 'cabinet', synonyms: ['chill cabinet', 'fridge', 'cooler'], look: 'A cold cabinet full of things in cans.' },
-    { noun: 'shelves', synonyms: ['bottles', 'liquor', 'stock'], look: 'Every bottle this town has a use for, and several it does not.' },
+    {
+      noun: 'counter',
+      synonyms: ['till', 'register'],
+      look: 'A worn counter with a till and a jar of something pickled.',
+    },
+    {
+      noun: 'cabinet',
+      synonyms: ['chill cabinet', 'fridge', 'cooler'],
+      look: 'A cold cabinet full of things in cans.',
+    },
+    {
+      noun: 'shelves',
+      synonyms: ['bottles', 'liquor', 'stock'],
+      look: 'Every bottle this town has a use for, and several it does not.',
+    },
   ],
 
   exits: exitsOf(DOORS),
@@ -213,8 +225,7 @@ export const insideStore: RoomDef = {
       g.award(1, 'bought-wine');
       g.cue('coin');
       g.say(
-        'You buy the cheapest bottle of red in the shop, which is a competitive ' +
-          'category.',
+        'You buy the cheapest bottle of red in the shop, which is a competitive ' + 'category.',
         'He puts it in a paper bag, twisting the neck closed with the ' +
           'practised movement of a man who does this four hundred times a night.',
       );

@@ -155,8 +155,16 @@ export const outsideStore: RoomDef = {
           : 'A payphone that has survived things. The receiver still has a cord, ' +
             'which around here counts as luxury.',
     },
-    { noun: 'store', synonyms: ['shop', 'window', 'storefront'], look: 'Open all night, lit like a stadium, and completely empty.' },
-    { noun: 'bin', synonyms: ['litter bin', 'trash can'], look: 'Full, and slightly beyond full.' },
+    {
+      noun: 'store',
+      synonyms: ['shop', 'window', 'storefront'],
+      look: 'Open all night, lit like a stadium, and completely empty.',
+    },
+    {
+      noun: 'bin',
+      synonyms: ['litter bin', 'trash can'],
+      look: 'Full, and slightly beyond full.',
+    },
     { noun: 'hydrant', look: 'A fire hydrant wearing a dent the exact width of a car bumper.' },
   ],
 
@@ -164,7 +172,11 @@ export const outsideStore: RoomDef = {
 
   onTick(g) {
     // Once you have made the joke call, the phone rings back.
-    if (g.hasAwarded('joke-call') && !g.flag('phoneRinging') && !g.hasAwarded('answered-phone')) {
+    if (
+      g.hasAwarded('joke-call') &&
+      !g.flag('phoneRinging') &&
+      !g.hasAwarded('answered-phone')
+    ) {
       const waited = g.bump('phoneRingDelay');
       if (waited === 12) {
         g.set('phoneRinging');
@@ -209,7 +221,7 @@ export const outsideStore: RoomDef = {
         g.hasAwarded('gave-wine')
           ? '"You are all right," he says. "You are all right."'
           : '"Cold night," he says, and shakes the empty bottle at you, gently, ' +
-            'in case you have missed the point.',
+              'in case you have missed the point.',
       );
       return true;
     }
@@ -274,7 +286,9 @@ export const outsideStore: RoomDef = {
 
       if (isNumber(raw, SCRATCHED)) {
         if (!g.hasAwarded('looked-at-phone')) {
-          g.say('You would need a number to dial. There is not one written down anywhere obvious.');
+          g.say(
+            'You would need a number to dial. There is not one written down anywhere obvious.',
+          );
           return true;
         }
         if (g.award(5, 'joke-call')) {
@@ -322,7 +336,7 @@ export const outsideStore: RoomDef = {
       g.say(
         g.hasAwarded('looked-at-phone')
           ? 'You lift the receiver. You will need to dial an actual number, ' +
-            'for example CALL 555-1234.'
+              'for example CALL 555-1234.'
           : 'You lift the receiver and realise you have nobody to call.',
       );
       return true;

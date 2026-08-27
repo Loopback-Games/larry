@@ -50,7 +50,9 @@ export const insideChapelScene = () =>
     p.ink(C.pinkLit).box(124, 82, 72, 2);
     for (const cx of [134, 184]) {
       p.slab(cx, 70, 4, 12, C.gold, 1);
-      p.ink(C.yellowPale).dot(cx + 1, 68).dot(cx + 2, 68);
+      p.ink(C.yellowPale)
+        .dot(cx + 1, 68)
+        .dot(cx + 2, 68);
       p.glow(cx + 1, 68, 9, C.tan, 0.5, [C.brown, C.brownLit, C.linen, C.bone]);
     }
     p.ink(C.crimson).box(148, 76, 26, 6);
@@ -170,11 +172,31 @@ export const insideChapel: RoomDef = {
   },
 
   hotspots: [
-    { noun: 'minister', synonyms: ['priest', 'preacher', 'reverend', 'him'], look: 'He has married four thousand couples at this altar and can do the whole thing in ninety seconds.' },
-    { noun: 'organ', synonyms: ['pipes', 'organ pipes'], look: 'It is playing by itself, which is either automation or the single most committed organist in the state.' },
-    { noun: 'altar', synonyms: ['table', 'book'], look: 'A white altar, two candles, and a book open at a page it is always open at.' },
-    { noun: 'pews', synonyms: ['pew', 'benches', 'seats'], look: 'Six pews. Nobody has ever filled them and nobody ever will.' },
-    { noun: 'window', synonyms: ['stained glass', 'glass'], look: 'A stained-glass window depicting, on close inspection, two rings and a slot machine.' },
+    {
+      noun: 'minister',
+      synonyms: ['priest', 'preacher', 'reverend', 'him'],
+      look: 'He has married four thousand couples at this altar and can do the whole thing in ninety seconds.',
+    },
+    {
+      noun: 'organ',
+      synonyms: ['pipes', 'organ pipes'],
+      look: 'It is playing by itself, which is either automation or the single most committed organist in the state.',
+    },
+    {
+      noun: 'altar',
+      synonyms: ['table', 'book'],
+      look: 'A white altar, two candles, and a book open at a page it is always open at.',
+    },
+    {
+      noun: 'pews',
+      synonyms: ['pew', 'benches', 'seats'],
+      look: 'Six pews. Nobody has ever filled them and nobody ever will.',
+    },
+    {
+      noun: 'window',
+      synonyms: ['stained glass', 'glass'],
+      look: 'A stained-glass window depicting, on close inspection, two rings and a slot machine.',
+    },
   ],
 
   exits: exitsOf(DOORS),

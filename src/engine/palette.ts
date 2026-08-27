@@ -29,7 +29,20 @@ const RAMPS: readonly (readonly [string, readonly string[]])[] = [
 
   // Neutrals. Cool in shadow, faintly warm at the top so white surfaces read as
   // lit rather than as holes in the picture.
-  ['neutral', ['#0b0c12', '#191b26', '#2a2d3b', '#3f4354', '#585d71', '#767d92', '#9aa1b4', '#c3c9d8', '#eef1f8']],
+  [
+    'neutral',
+    [
+      '#0b0c12',
+      '#191b26',
+      '#2a2d3b',
+      '#3f4354',
+      '#585d71',
+      '#767d92',
+      '#9aa1b4',
+      '#c3c9d8',
+      '#eef1f8',
+    ],
+  ],
 
   ['blue', ['#101a3a', '#1b2c5e', '#28468f', '#3f6cc4', '#6f9ceb', '#a8c6f7']],
   ['cyan', ['#0a2c36', '#0f545f', '#188792', '#2ebcbe', '#6ee2dc', '#b2f5ef']],

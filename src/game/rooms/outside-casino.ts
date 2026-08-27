@@ -39,8 +39,7 @@ export const outsideCasinoScene = () =>
     p.ink(darker(C.slate)).box(56, 0, 210, 104);
     p.ink(C.slate).box(56, 0, 210, 6);
     p.ink(C.navy);
-    for (let y = 12; y < 96; y += 12)
-      for (let x = 64; x < 260; x += 14) p.box(x, y, 10, 8);
+    for (let y = 12; y < 96; y += 12) for (let x = 64; x < 260; x += 14) p.box(x, y, 10, 8);
     p.ink(C.yellow);
     for (let y = 12; y < 96; y += 12)
       for (let x = 64; x < 260; x += 14) if ((x + y) % 5 === 0) p.box(x, y, 10, 8);
@@ -141,9 +140,21 @@ export const outsideCasino: RoomDef = {
       synonyms: ['fruit stall', 'fruit', 'apples', 'cart'],
       look: 'Apples, mostly. A few oranges that have given up. The apples are polished.',
     },
-    { noun: 'casino', synonyms: ['hotel', 'tower', 'building'], look: 'Thirty storeys of hotel with a casino in the bottom of it, lit like a landing strip.' },
-    { noun: 'sign', synonyms: ['big sign', 'neon'], look: 'A sign so large it has its own weather. It does not name the place. It just says OPEN, in letters eight feet high.' },
-    { noun: 'doors', synonyms: ['revolving doors', 'entrance'], look: 'Gold-framed revolving doors turning slowly with nobody in them.' },
+    {
+      noun: 'casino',
+      synonyms: ['hotel', 'tower', 'building'],
+      look: 'Thirty storeys of hotel with a casino in the bottom of it, lit like a landing strip.',
+    },
+    {
+      noun: 'sign',
+      synonyms: ['big sign', 'neon'],
+      look: 'A sign so large it has its own weather. It does not name the place. It just says OPEN, in letters eight feet high.',
+    },
+    {
+      noun: 'doors',
+      synonyms: ['revolving doors', 'entrance'],
+      look: 'Gold-framed revolving doors turning slowly with nobody in them.',
+    },
   ],
 
   exits: exitsOf(DOORS),

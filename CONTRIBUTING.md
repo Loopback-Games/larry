@@ -66,7 +66,7 @@ npm run lint:workflows   # actionlint + zizmor
 
 - `test/world` — the map holds together: exits resolve, entry points are on
   walkable ground, no room drops you on top of its own doorway.
-- `test/traversal` — the map is *navigable*: it walks the ego through every
+- `test/traversal` — the map is _navigable_: it walks the ego through every
   exit by steering and ticking, exactly as the arrow keys do. Use this rather
   than `goTo` when you want to know a room really works.
 - `test/walkthrough` — the game is completable and still scores 222.

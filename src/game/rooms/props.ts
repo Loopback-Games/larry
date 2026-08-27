@@ -13,22 +13,34 @@ export function drawTaxi(p: Painter, x: number, y: number): void {
   p.saved((q) => {
     // Body.
     q.ink(C.yellow).solid([
-      left + 2, top + 22,
-      left + 14, top + 12,
-      left + 34, top + 8,
-      left + 60, top + 8,
-      left + 82, top + 14,
-      left + 94, top + 22,
-      left + 94, top + 30,
-      left + 2, top + 30,
+      left + 2,
+      top + 22,
+      left + 14,
+      top + 12,
+      left + 34,
+      top + 8,
+      left + 60,
+      top + 8,
+      left + 82,
+      top + 14,
+      left + 94,
+      top + 22,
+      left + 94,
+      top + 30,
+      left + 2,
+      top + 30,
     ]);
     q.ink(darker(C.yellow)).line(left + 2, top + 30, left + 93, top + 30);
     // Glasshouse.
     q.ink(C.navy).solid([
-      left + 20, top + 12,
-      left + 34, top + 2,
-      left + 58, top + 2,
-      left + 70, top + 12,
+      left + 20,
+      top + 12,
+      left + 34,
+      top + 2,
+      left + 58,
+      top + 2,
+      left + 70,
+      top + 12,
     ]);
     q.ink(C.slate).line(left + 45, top + 2, left + 45, top + 12);
     // Chequer band, roof light and door line.

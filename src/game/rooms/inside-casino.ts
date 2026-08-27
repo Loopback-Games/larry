@@ -83,10 +83,11 @@ export const insideCasinoScene = () =>
         p.path([x, y, x + 5, y + 5, x, y + 10, x - 5, y + 5]);
       }
 
-
     // A rail of bulbs running the length of the wall, and the light it throws.
     for (let x = 14; x < p.width; x += 28) {
-      p.ink(C.yellowPale).dot(x, 18).dot(x + 1, 18);
+      p.ink(C.yellowPale)
+        .dot(x, 18)
+        .dot(x + 1, 18);
       p.glow(x, 18, 12, C.crimson, 0.4, [C.maroon, C.crimson, C.maroonDeep]);
     }
 
@@ -150,10 +151,26 @@ export const insideCasino: RoomDef = {
     'working very hard for very few people.',
 
   hotspots: [
-    { noun: 'slots', synonyms: ['slot machine', 'slot machines', 'machines', 'fruit machine'], look: 'Three one-armed bandits, all showing the same three losing symbols.' },
-    { noun: 'blackjack table', synonyms: ['card table', 'table', 'blackjack', 'twenty one'], look: 'A green baize table with a dealer shoe and nobody sitting at it.' },
-    { noun: 'lift', synonyms: ['elevator', 'lift doors'], look: 'Gold lift doors, standing open, waiting.' },
-    { noun: 'lounge door', synonyms: ['curtain', 'lounge', 'doorway'], look: 'A curtained doorway with a pink sign over it. The drumming is coming from in there.' },
+    {
+      noun: 'slots',
+      synonyms: ['slot machine', 'slot machines', 'machines', 'fruit machine'],
+      look: 'Three one-armed bandits, all showing the same three losing symbols.',
+    },
+    {
+      noun: 'blackjack table',
+      synonyms: ['card table', 'table', 'blackjack', 'twenty one'],
+      look: 'A green baize table with a dealer shoe and nobody sitting at it.',
+    },
+    {
+      noun: 'lift',
+      synonyms: ['elevator', 'lift doors'],
+      look: 'Gold lift doors, standing open, waiting.',
+    },
+    {
+      noun: 'lounge door',
+      synonyms: ['curtain', 'lounge', 'doorway'],
+      look: 'A curtained doorway with a pink sign over it. The drumming is coming from in there.',
+    },
     {
       noun: 'card',
       synonyms: ['pass', 'membership card', 'little table', 'side table'],
@@ -179,7 +196,7 @@ export const insideCasino: RoomDef = {
       g.say(
         'You pick the card up off the side table with the unhurried movement ' +
           'of a man collecting his own property.',
-        'It is a membership card for a discotheque. It has somebody else\'s ' +
+        "It is a membership card for a discotheque. It has somebody else's " +
           'name on it, in a font small enough that this may not matter.',
       );
       return true;

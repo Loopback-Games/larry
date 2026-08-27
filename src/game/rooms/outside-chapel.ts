@@ -47,7 +47,10 @@ export const outsideChapelScene = () =>
     for (const hx of [98, 222]) {
       p.ink(C.pink);
       p.solid([hx, 78, hx - 10, 68, hx - 5, 62, hx, 66, hx + 5, 62, hx + 10, 68]);
-      p.ink(C.red).dot(hx, 74).dot(hx - 4, 70).dot(hx + 4, 70);
+      p.ink(C.red)
+        .dot(hx, 74)
+        .dot(hx - 4, 70)
+        .dot(hx + 4, 70);
     }
     p.ink(C.maroon).box(112, 52, 96, 14);
     p.ink(C.pink).outline(112, 52, 96, 14);
@@ -63,9 +66,17 @@ export const outsideChapelScene = () =>
     for (const ux of [116, 204]) {
       p.ink(C.slate).solid([ux - 8, 108, ux + 8, 108, ux + 5, 128, ux - 5, 128]);
       p.ink(C.grey).line(ux - 8, 108, ux + 7, 108);
-      p.ink(C.green).path([ux, 108, ux - 6, 96]).path([ux, 108, ux + 6, 94]).path([ux, 108, ux, 92]);
-      p.ink(C.pink).dot(ux - 6, 95).dot(ux + 6, 93).dot(ux, 91);
-      p.ink(C.yellow).dot(ux - 6, 94).dot(ux, 90);
+      p.ink(C.green)
+        .path([ux, 108, ux - 6, 96])
+        .path([ux, 108, ux + 6, 94])
+        .path([ux, 108, ux, 92]);
+      p.ink(C.pink)
+        .dot(ux - 6, 95)
+        .dot(ux + 6, 93)
+        .dot(ux, 91);
+      p.ink(C.yellow)
+        .dot(ux - 6, 94)
+        .dot(ux, 90);
     }
 
     // Pavement and kerb.
@@ -128,9 +139,21 @@ export const outsideChapel: RoomDef = {
           : 'A man in a long coat, standing very still by the kerb with the ' +
             'air of someone about to make a decision.',
     },
-    { noun: 'chapel', synonyms: ['church', 'building'], look: 'A wedding chapel built out of boards and optimism, open twenty-four hours.' },
-    { noun: 'hearts', synonyms: ['neon', 'neon hearts', 'sign'], look: 'Two neon hearts, one of which is failing in a way that makes it flicker like a real one.' },
-    { noun: 'steeple', synonyms: ['spire'], look: 'A steeple with a small gold cross that is, on closer inspection, a small gold dollar sign.' },
+    {
+      noun: 'chapel',
+      synonyms: ['church', 'building'],
+      look: 'A wedding chapel built out of boards and optimism, open twenty-four hours.',
+    },
+    {
+      noun: 'hearts',
+      synonyms: ['neon', 'neon hearts', 'sign'],
+      look: 'Two neon hearts, one of which is failing in a way that makes it flicker like a real one.',
+    },
+    {
+      noun: 'steeple',
+      synonyms: ['spire'],
+      look: 'A steeple with a small gold cross that is, on closer inspection, a small gold dollar sign.',
+    },
   ],
 
   exits: exitsOf(DOORS),
@@ -140,8 +163,7 @@ export const outsideChapel: RoomDef = {
       if (g.award(1, 'talked-to-flasher')) {
         g.cue('score');
         g.say(
-          'You say good evening, because you are a polite man and it is a ' +
-            'public street.',
+          'You say good evening, because you are a polite man and it is a ' + 'public street.',
           'He looks startled, as though nobody has ever opened with ' +
             'conversation before. He glances down at his coat, then at you, ' +
             'then at the chapel.',

@@ -8,7 +8,6 @@ import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
 import type { Game } from '../../engine/engine.js';
 
-
 /** Where the floor meets the back of the room. */
 const FLOOR = 92;
 /** Perspective, declared here so the furniture can be sized off the figure. */
@@ -91,10 +90,14 @@ export const insideDiscoScene = () =>
       for (let c = 0; c < 8; c++) {
         p.ink(palette[(r + c) % palette.length]);
         p.solid([
-          160 + ((c - 4) / 4) * s0, y0,
-          160 + ((c - 3) / 4) * s0, y0,
-          160 + ((c - 3) / 4) * s1, y1,
-          160 + ((c - 4) / 4) * s1, y1,
+          160 + ((c - 4) / 4) * s0,
+          y0,
+          160 + ((c - 3) / 4) * s0,
+          y0,
+          160 + ((c - 3) / 4) * s1,
+          y1,
+          160 + ((c - 4) / 4) * s1,
+          y1,
         ]);
       }
       // Far rows sit further from the lamps, which also settles the colour.
@@ -108,16 +111,23 @@ export const insideDiscoScene = () =>
     // Sized off the person who would sit at them rather than by eye: a table
     // top comes to a little under half the height of someone standing beside
     // it, and seats two.
-    for (const [tx, base] of [[42, 148], [274, 152]] as const) {
+    for (const [tx, base] of [
+      [42, 148],
+      [274, 152],
+    ] as const) {
       const h = propHeight('tableTop', base, FLOOR, AT_HORIZON);
       const half = Math.round(personWidthAt(base, FLOOR, AT_HORIZON) * 1.2);
       const top = base - h;
       const apron = Math.max(2, Math.round(h * 0.3));
       p.ink(C.maroonDeep).solid([
-        tx - half, top,
-        tx + half, top,
-        tx + half - 3, top + apron,
-        tx - half + 3, top + apron,
+        tx - half,
+        top,
+        tx + half,
+        top,
+        tx + half - 3,
+        top + apron,
+        tx - half + 3,
+        top + apron,
       ]);
       p.ink(C.maroon).line(tx - half, top, tx + half - 1, top);
       p.ink(C.ink).box(tx - 2, top + apron, 5, base - top - apron);
@@ -242,10 +252,26 @@ export const insideDisco: RoomDef = {
         return 'Still bored. Still here. Still, for reasons of her own, looking back.';
       },
     },
-    { noun: 'floor', synonyms: ['dance floor', 'dancefloor'], look: 'Lit squares in colours that change on a cycle set by somebody with a grudge.' },
-    { noun: 'ball', synonyms: ['mirror ball', 'glitterball'], look: 'A mirror ball turning at a speed that suggests the motor is failing.' },
-    { noun: 'booth', synonyms: ['dj', 'dj booth', 'decks'], look: 'A booth with two decks and nobody behind them. The music is coming from somewhere else.' },
-    { noun: 'table', synonyms: ['tables', 'booths'], look: 'Two booth tables, each with a candle in a red glass.' },
+    {
+      noun: 'floor',
+      synonyms: ['dance floor', 'dancefloor'],
+      look: 'Lit squares in colours that change on a cycle set by somebody with a grudge.',
+    },
+    {
+      noun: 'ball',
+      synonyms: ['mirror ball', 'glitterball'],
+      look: 'A mirror ball turning at a speed that suggests the motor is failing.',
+    },
+    {
+      noun: 'booth',
+      synonyms: ['dj', 'dj booth', 'decks'],
+      look: 'A booth with two decks and nobody behind them. The music is coming from somewhere else.',
+    },
+    {
+      noun: 'table',
+      synonyms: ['tables', 'booths'],
+      look: 'Two booth tables, each with a candle in a red glass.',
+    },
   ],
 
   exits: exitsOf(DOORS),
@@ -273,7 +299,9 @@ export const insideDisco: RoomDef = {
     // ---- dancing ----------------------------------------------------------
     if (cmd.verb === 'dance') {
       if (!seated) {
-        g.say('You dance alone in an empty disco for a while. Nobody joins you. Nobody ever will.');
+        g.say(
+          'You dance alone in an empty disco for a while. Nobody joins you. Nobody ever will.',
+        );
         return true;
       }
       if (g.award(5, 'danced')) {
@@ -297,7 +325,9 @@ export const insideDisco: RoomDef = {
     // ---- talking ----------------------------------------------------------
     if (cmd.is('talk', 'fawn') || cmd.isBare('talk')) {
       if (!seated) {
-        g.say('You would have to go and sit with her first. Shouting across a disco is not courtship.');
+        g.say(
+          'You would have to go and sit with her first. Shouting across a disco is not courtship.',
+        );
         return true;
       }
       if (g.award(1, 'talked-to-fawn')) {

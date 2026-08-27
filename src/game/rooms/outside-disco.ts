@@ -136,9 +136,21 @@ export const outsideDisco: RoomDef = {
           : 'A wide man in a dinner jacket, perfectly still, radiating the ' +
             'calm of someone whose job is to say one word all night.',
     },
-    { noun: 'rope', synonyms: ['velvet rope', 'barrier'], look: 'A velvet rope between two chrome posts, holding back a queue of nobody.' },
-    { noun: 'doors', synonyms: ['door', 'entrance'], look: 'Mirrored doors. You can see yourself approaching them, which is discouraging.' },
-    { noun: 'neon', synonyms: ['sign', 'lights'], look: 'Three bars of neon in pink, blue and yellow. The name of the place is not written anywhere. If you have to ask, and so on.' },
+    {
+      noun: 'rope',
+      synonyms: ['velvet rope', 'barrier'],
+      look: 'A velvet rope between two chrome posts, holding back a queue of nobody.',
+    },
+    {
+      noun: 'doors',
+      synonyms: ['door', 'entrance'],
+      look: 'Mirrored doors. You can see yourself approaching them, which is discouraging.',
+    },
+    {
+      noun: 'neon',
+      synonyms: ['sign', 'lights'],
+      look: 'Three bars of neon in pink, blue and yellow. The name of the place is not written anywhere. If you have to ask, and so on.',
+    },
   ],
 
   exits: exitsOf(DOORS),

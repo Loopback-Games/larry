@@ -15,7 +15,12 @@ export const DESTINATIONS: readonly {
   /** Kept off the spoken list until the player has a reason to go. */
   hidden?: boolean;
 }[] = [
-  { noun: 'bar', synonyms: ["lefty's", 'lefty', 'pub'], room: RoomId.OutsideBar, label: "Lefty's" },
+  {
+    noun: 'bar',
+    synonyms: ["lefty's", 'lefty', 'pub'],
+    room: RoomId.OutsideBar,
+    label: "Lefty's",
+  },
   {
     noun: 'store',
     synonyms: ['liquor store', 'shop', 'off licence', 'market'],
@@ -149,8 +154,16 @@ export const taxi: RoomDef = {
         'He watches you in the mirror with an expression that suggests he has ' +
         'already worked out how your evening ends.',
     },
-    { noun: 'meter', synonyms: ['fare'], look: 'The meter ticks up in increments designed to be just below the threshold of complaint.' },
-    { noun: 'windscreen', synonyms: ['windshield', 'window'], look: 'Lost Wages slides past: neon, shutters, and a great deal of nothing.' },
+    {
+      noun: 'meter',
+      synonyms: ['fare'],
+      look: 'The meter ticks up in increments designed to be just below the threshold of complaint.',
+    },
+    {
+      noun: 'windscreen',
+      synonyms: ['windshield', 'window'],
+      look: 'Lost Wages slides past: neon, shutters, and a great deal of nothing.',
+    },
   ],
 
   onEnter(g) {
@@ -169,9 +182,7 @@ export const taxi: RoomDef = {
   onCommand(g, cmd) {
     for (const dest of DESTINATIONS) {
       const named =
-        cmd.mentions(dest.noun) ||
-        cmd.object === dest.noun ||
-        cmd.indirect === dest.noun;
+        cmd.mentions(dest.noun) || cmd.object === dest.noun || cmd.indirect === dest.noun;
       if (!named) continue;
       if (cmd.verb === 'look') break;
       ride(g, dest.room, dest.label);

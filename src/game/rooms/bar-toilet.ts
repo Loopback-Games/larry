@@ -7,7 +7,6 @@ import type { RoomDef } from '../../engine/room.js';
 /** The number scrawled on the wall here opens up the rest of the night. */
 export const HOTLINE_NUMBER = '555-6969';
 
-
 /** Where the floor meets the back of the room. */
 const FLOOR = 128;
 
@@ -72,7 +71,9 @@ export const barToiletScene = () =>
     // ---- graffiti ----------------------------------------------------------
     // On the wall left of the mirror, where there is room for it to be read.
     p.ink(C.cream).path([148, 44, 156, 38, 164, 44, 156, 50, 148, 44]);
-    p.ink(C.goldLit).path([174, 38, 174, 50, 182, 50]).path([188, 38, 194, 38, 194, 50, 188, 50]);
+    p.ink(C.goldLit)
+      .path([174, 38, 174, 50, 182, 50])
+      .path([188, 38, 194, 38, 194, 50, 188, 50]);
     p.ink(C.pinkLit).path([148, 60, 162, 60]).path([168, 56, 168, 64]);
     p.ink(C.greenLit).path([176, 58, 184, 66, 192, 58]);
     p.ink(C.redLit).path([148, 72, 156, 80, 148, 88]);

@@ -145,12 +145,27 @@ export const blackjack: RoomDef = {
   populate: () => [DEALER],
 
   hotspots: [
-    { noun: 'dealer', synonyms: ['croupier', 'him', 'man'], look: 'He deals without looking at his hands and looks at you without expression.' },
-    { noun: 'felt', synonyms: ['baize', 'table', 'rules'], look: 'DEALER STANDS ON 17. BLACKJACK PAYS EVEN MONEY, which is robbery, politely printed.' },
-    { noun: 'chips', synonyms: ['chip', 'rack'], look: 'A rack of chips, none of which are yours.' },
-    { noun: 'shoe', synonyms: ['dealer shoe', 'cards'], look: 'A wooden shoe holding more decks than you can count.' },
+    {
+      noun: 'dealer',
+      synonyms: ['croupier', 'him', 'man'],
+      look: 'He deals without looking at his hands and looks at you without expression.',
+    },
+    {
+      noun: 'felt',
+      synonyms: ['baize', 'table', 'rules'],
+      look: 'DEALER STANDS ON 17. BLACKJACK PAYS EVEN MONEY, which is robbery, politely printed.',
+    },
+    {
+      noun: 'chips',
+      synonyms: ['chip', 'rack'],
+      look: 'A rack of chips, none of which are yours.',
+    },
+    {
+      noun: 'shoe',
+      synonyms: ['dealer shoe', 'cards'],
+      look: 'A wooden shoe holding more decks than you can count.',
+    },
   ],
-
 
   onEnter(g) {
     g.setCounter('bjState', 0);
@@ -211,7 +226,9 @@ export const blackjack: RoomDef = {
       }
       const card = draw(g);
       // Totals are stored already-demoted, so an ace drawn late counts as one.
-      const next = g.counter('bjPlayer') + (card.value === 11 && g.counter('bjPlayer') > 10 ? 1 : card.value);
+      const next =
+        g.counter('bjPlayer') +
+        (card.value === 11 && g.counter('bjPlayer') > 10 ? 1 : card.value);
       g.setCounter('bjPlayer', next);
       if (next > 21) {
         g.setCounter('bjState', 0);

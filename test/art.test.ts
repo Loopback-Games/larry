@@ -57,7 +57,9 @@ describe('room artwork', () => {
       const share = counts[0] / s.colour.length;
       // Night exteriors are legitimately mostly sky; a room that is two thirds
       // one colour is a void with some furniture in it.
-      expect(share, `${room.id} is ${Math.round(share * 100)}% a single colour`).toBeLessThan(0.7);
+      expect(share, `${room.id} is ${Math.round(share * 100)}% a single colour`).toBeLessThan(
+        0.7,
+      );
     }
   });
 
@@ -100,7 +102,9 @@ describe('room artwork', () => {
     for (const room of ROOMS) {
       const a = room.scene();
       const b = room.scene();
-      expect([...a.colour], `${room.id} does not paint deterministically`).toEqual([...b.colour]);
+      expect([...a.colour], `${room.id} does not paint deterministically`).toEqual([
+        ...b.colour,
+      ]);
       expect([...a.walk], `${room.id}'s walk mask is not deterministic`).toEqual([...b.walk]);
     }
   });

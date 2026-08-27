@@ -64,8 +64,7 @@ export const ITEMS: Readonly<Record<ItemId, ItemDef>> = {
     name: 'Rose',
     nouns: ['rose', 'flower'],
     description:
-      'A single red rose, slightly crushed. Romance on a budget, but romance ' +
-      'nonetheless.',
+      'A single red rose, slightly crushed. Romance on a budget, but romance ' + 'nonetheless.',
   },
   [ItemId.Ring]: {
     id: ItemId.Ring,
@@ -87,8 +86,7 @@ export const ITEMS: Readonly<Record<ItemId, ItemDef>> = {
     id: ItemId.Condom,
     name: 'Prophylactic',
     nouns: ['condom', 'prophylactic', 'rubber', 'protection'],
-    description:
-      'Still sealed, and frankly the single most responsible object you own.',
+    description: 'Still sealed, and frankly the single most responsible object you own.',
   },
   [ItemId.UsedCondom]: {
     id: ItemId.UsedCondom,
@@ -176,6 +174,6 @@ export const ITEMS: Readonly<Record<ItemId, ItemDef>> = {
 
 export const ALL_ITEMS: readonly ItemDef[] = Object.values(ITEMS);
 
-export const STARTING_ITEMS: readonly ItemId[] = ALL_ITEMS.filter(
-  (i) => i.carriedAtStart,
-).map((i) => i.id);
+export const STARTING_ITEMS: readonly ItemId[] = ALL_ITEMS.filter((i) => i.carriedAtStart).map(
+  (i) => i.id,
+);

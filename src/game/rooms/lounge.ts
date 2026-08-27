@@ -18,14 +18,14 @@ const DOORS: readonly Doorway[] = [
 /** Jokes the comedian works through, in order, for an audience of one. */
 const ROUTINE: readonly string[] = [
   '"Good evening, Lost Wages! Or, as the sign at the city limits has it, ' +
-    '\'Lost Wages: You Were Going To Spend It Anyway\'."',
+    "'Lost Wages: You Were Going To Spend It Anyway'.\"",
   '"I flew in this afternoon. Terrible flight. The pilot came on and said, ' +
-    '\'Folks, we are experiencing some turbulence, and also I am experiencing ' +
+    "'Folks, we are experiencing some turbulence, and also I am experiencing " +
     'some doubt\'."',
   '"You are a wonderful audience. Both of you. And one of you is the drummer."',
   '"A man walks into a bar in this town and says, \'I will have whatever the ' +
     'floor is having\'."',
-  '"My wife said, \'You never take me anywhere expensive.\' So I took her to ' +
+  "\"My wife said, 'You never take me anywhere expensive.' So I took her to " +
     'the petrol station."',
   '"Thank you, you have been marvellous, and by marvellous I mean present."',
 ];
@@ -64,22 +64,33 @@ export const loungeScene = () =>
     // Tables in the dark, each with a candle.
     p.ink(C.black).box(0, 114, p.width, p.height - 114);
     for (const [tx, base] of [
-      [40, 138], [130, 143], [232, 141], [86, 164], [196, 166], [286, 162],
+      [40, 138],
+      [130, 143],
+      [232, 141],
+      [86, 164],
+      [196, 166],
+      [286, 162],
     ] as const) {
       const h = propHeight('tableTop', base, FLOOR, AT_HORIZON);
       const r = Math.round(personWidthAt(base, FLOOR, AT_HORIZON) * 1.1);
       const ty = base - h;
       const apron = Math.max(2, Math.round(h * 0.4));
       p.ink(darker(C.slate)).solid([
-        tx - r, ty,
-        tx + r, ty,
-        tx + r - 3, ty + apron,
-        tx - r + 3, ty + apron,
+        tx - r,
+        ty,
+        tx + r,
+        ty,
+        tx + r - 3,
+        ty + apron,
+        tx - r + 3,
+        ty + apron,
       ]);
       p.ink(C.slate).line(tx - r, ty, tx + r - 1, ty);
       p.ink(C.black).box(tx - 2, ty + apron, 4, base - ty - apron);
       p.ink(C.red).box(tx - 3, ty - 7, 6, 7);
-      p.ink(C.yellow).dot(tx, ty - 9).dot(tx, ty - 10);
+      p.ink(C.yellow)
+        .dot(tx, ty - 9)
+        .dot(tx, ty - 10);
     }
 
     doorways(p, DOORS);
@@ -143,10 +154,26 @@ export const lounge: RoomDef = {
   populate: () => [COMEDIAN, DRUMMER],
 
   hotspots: [
-    { noun: 'comedian', synonyms: ['comic', 'man', 'him', 'entertainer'], look: 'A man in a powder-blue jacket delivering material to a room that is, generously, one third full of you.' },
-    { noun: 'drummer', synonyms: ['drums', 'kit', 'her'], look: 'She hits the cymbal after every punchline with the timing of a metronome and the enthusiasm of a hostage.' },
-    { noun: 'stage', synonyms: ['platform'], look: 'A stage about the size of a generous doormat.' },
-    { noun: 'tables', synonyms: ['table', 'candles', 'candle'], look: 'Eleven tables, eleven candles, no people.' },
+    {
+      noun: 'comedian',
+      synonyms: ['comic', 'man', 'him', 'entertainer'],
+      look: 'A man in a powder-blue jacket delivering material to a room that is, generously, one third full of you.',
+    },
+    {
+      noun: 'drummer',
+      synonyms: ['drums', 'kit', 'her'],
+      look: 'She hits the cymbal after every punchline with the timing of a metronome and the enthusiasm of a hostage.',
+    },
+    {
+      noun: 'stage',
+      synonyms: ['platform'],
+      look: 'A stage about the size of a generous doormat.',
+    },
+    {
+      noun: 'tables',
+      synonyms: ['table', 'candles', 'candle'],
+      look: 'Eleven tables, eleven candles, no people.',
+    },
   ],
 
   exits: exitsOf(DOORS),

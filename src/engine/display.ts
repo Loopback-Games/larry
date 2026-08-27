@@ -54,7 +54,10 @@ function blitScene(s: Surface, scene: Surface): void {
   for (let y = 0; y < scene.height; y++) {
     const dy = SCENE_TOP + y;
     if (dy >= SCREEN_H) break;
-    s.colour.set(scene.colour.subarray(y * scene.width, y * scene.width + width), dy * SCREEN_W);
+    s.colour.set(
+      scene.colour.subarray(y * scene.width, y * scene.width + width),
+      dy * SCREEN_W,
+    );
   }
 }
 

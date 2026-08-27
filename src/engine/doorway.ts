@@ -146,7 +146,13 @@ export function paintDoorway(p: Painter, d: Doorway): void {
       const steps = 4;
       for (let i = 0; i < steps; i++) {
         const inset = i * 3;
-        p.slab(left - 6 + inset, floorY - 3 - i * 3, width + 12 - inset * 2, 4, shade(frame, -1));
+        p.slab(
+          left - 6 + inset,
+          floorY - 3 - i * 3,
+          width + 12 - inset * 2,
+          4,
+          shade(frame, -1),
+        );
       }
       break;
     }
@@ -158,16 +164,22 @@ export function paintDoorway(p: Painter, d: Doorway): void {
   }
 
   // The frame, lit from the upper left like everything else.
-  p.ink(shade(frame, 1)).box(left - 3, top - 3, width + 6, 3).box(left - 3, top - 3, 3, height + 3);
+  p.ink(shade(frame, 1))
+    .box(left - 3, top - 3, width + 6, 3)
+    .box(left - 3, top - 3, 3, height + 3);
   p.ink(shade(frame, -2)).box(left + width, top - 3, 3, height + 3);
 
   // Light falling out of the opening onto the floor in front of it.
   if (d.spill !== undefined) {
     p.ink(d.spill).solid([
-      left + 2, floorY,
-      left + width - 2, floorY,
-      left + width + 8, floorY + 9,
-      left - 8, floorY + 9,
+      left + 2,
+      floorY,
+      left + width - 2,
+      floorY,
+      left + width + 8,
+      floorY + 9,
+      left - 8,
+      floorY + 9,
     ]);
     p.relight(left - 8, floorY, width + 16, 10, -1);
     p.lightPool(cx(d), floorY + 5, Math.round(width / 2) + 10, 8, 1);

@@ -41,9 +41,7 @@ export function installMenu(game: Game, audio: AudioEngine, onClose: () => void)
 
     switch (action) {
       case 'save':
-        game.say(
-          game.save() ? 'Game saved.' : 'This browser will not let the game save.',
-        );
+        game.say(game.save() ? 'Game saved.' : 'This browser will not let the game save.');
         break;
       case 'restore':
         if (!game.hasSave()) game.say('There is no saved game to restore.');
