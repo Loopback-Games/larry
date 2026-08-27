@@ -1,0 +1,37 @@
+# Every development tool this repository expects, pinned once. CI installs
+# exactly this list (jdx/mise-action) and runs the same `just` recipes, so local
+# and CI can never disagree about a tool's version.
+#
+# Task running belongs to just. There are deliberately no [tasks] here: two task
+# runners in one repository means neither is trusted.
+[tools]
+# There were four answers to this before, and none of them referred to each
+# other: package.json's engines said `^20.19.0 || >=22.12.0`, both workflows set
+# NODE_VERSION to 22, the README said 20, and @types/node was on 26 — four
+# majors above the runtime CI actually ran. This is the answer now, and
+# package.json's engines follows it rather than competing with it.
+node = "24.20.0"
+
+just = "1.58.0"
+
+# These two were an npm script that assumed both were already on PATH, and a CI
+# job that fetched actionlint through `curl | bash` and zizmor through `pipx
+# run`. Neither is a pinned tool; both are now.
+actionlint = "1.7.12"
+zizmor = "1.29.0"
+
+# This repository had no security scanning of any kind. npm audit gates at
+# `high`; osv-scanner has no severity filter, so its findings stay visible
+# without blocking, and gitleaks reads the history rather than the tree.
+gitleaks = "8.30.1"
+osv-scanner = "2.5.1"
+
+# uv is here to serve the pipx backend below, which has no packaged binary to
+# fetch. Without it a clean machine fails at "pipx is required to install
+# pipx:yamllint but was not found".
+uv = "0.12.6"
+"pipx:yamllint" = "1.38.0"
+
+[settings]
+# The pipx backend goes through uv rather than needing a pipx of its own.
+pipx.uvx = true

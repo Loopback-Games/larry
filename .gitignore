@@ -7,3 +7,5 @@ test-results/
 playwright-report/
 .deploy/
 .scratch/
+rooms.png
+rooms-walk.png

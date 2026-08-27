@@ -12,6 +12,16 @@ updates:
         patterns:
           - "*"
 
+  # The Playwright container image and the @playwright/test package have to
+  # move together or Playwright cannot find its browsers, and they sit in
+  # different ecosystems, so Dependabot cannot open them as one pull request.
+  # It does not need to: `just lint-versions` fails whichever arrives first,
+  # which is the signal to bump the other in the same branch.
+  - package-ecosystem: docker
+    directory: /.devcontainer
+    schedule:
+      interval: weekly
+
   - package-ecosystem: npm
     directory: /
     schedule:
