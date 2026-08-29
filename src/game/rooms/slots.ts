@@ -7,7 +7,12 @@ import type { Game } from '../../engine/engine.js';
 const SYMBOLS = ['CHERRY', 'BELL', 'BAR', 'SEVEN', 'LEMON', 'PLUM'] as const;
 /** Payout multiplier for three of a kind. */
 const TRIPLE: Readonly<Record<string, number>> = {
-  CHERRY: 5, BELL: 8, BAR: 12, SEVEN: 40, LEMON: 3, PLUM: 4,
+  CHERRY: 5,
+  BELL: 8,
+  BAR: 12,
+  SEVEN: 40,
+  LEMON: 3,
+  PLUM: 4,
 };
 export const SLOT_BET = 5;
 
@@ -35,7 +40,9 @@ export const slotsScene = () =>
       const rx = 84 + i * 54;
       p.ink(C.black).box(rx, 60, 46, 50);
       p.ink(C.white).box(rx + 3, 63, 40, 44);
-      p.ink(C.slate).line(rx + 3, 70, rx + 42, 70).line(rx + 3, 100, rx + 42, 100);
+      p.ink(C.slate)
+        .line(rx + 3, 70, rx + 42, 70)
+        .line(rx + 3, 100, rx + 42, 100);
       p.ink([C.red, C.lime, C.blue][i]).box(rx + 12, 76, 22, 18);
       p.ink(C.black).outline(rx + 12, 76, 22, 18);
     }
@@ -79,7 +86,10 @@ function spin(g: Game): void {
     const win = SLOT_BET * 2;
     g.bump('money', win);
     g.cue('coin');
-    g.say(line, `Two matching. It gives you back $${win}, which is not winning, but is not losing.`);
+    g.say(
+      line,
+      `Two matching. It gives you back $${win}, which is not winning, but is not losing.`,
+    );
     return;
   }
   g.cue('error');
@@ -103,11 +113,22 @@ export const slots: RoomDef = {
     `Five dollars a pull. It is not complicated, and neither are you.`,
 
   hotspots: [
-    { noun: 'machine', synonyms: ['slot machine', 'slots', 'bandit'], look: 'Three reels, one arm, and a payout tray with nothing in it.' },
-    { noun: 'arm', synonyms: ['lever', 'handle'], look: 'A chrome arm with a red ball on the end, worn smooth.' },
-    { noun: 'tray', synonyms: ['payout tray', 'payout'], look: 'Empty, and polished by generations of hopeful hands.' },
+    {
+      noun: 'machine',
+      synonyms: ['slot machine', 'slots', 'bandit'],
+      look: 'Three reels, one arm, and a payout tray with nothing in it.',
+    },
+    {
+      noun: 'arm',
+      synonyms: ['lever', 'handle'],
+      look: 'A chrome arm with a red ball on the end, worn smooth.',
+    },
+    {
+      noun: 'tray',
+      synonyms: ['payout tray', 'payout'],
+      look: 'Empty, and polished by generations of hopeful hands.',
+    },
   ],
-
 
   onEnter(g) {
     if (!g.flag('seenSlots')) {

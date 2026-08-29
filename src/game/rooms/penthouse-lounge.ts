@@ -43,8 +43,7 @@ const DOORS: readonly Doorway[] = [
     when: (g) =>
       g.flag('ropeTied')
         ? true
-        : 'It is one level down and a long way out. You would need something ' +
-          'to climb.',
+        : 'It is one level down and a long way out. You would need something ' + 'to climb.',
   },
 ];
 
@@ -113,7 +112,6 @@ export const penthouseLoungeScene = () =>
     p.ink(C.crimson).box(146, 124, 12, 6);
     p.contact(128, 146, 54, 5, -2);
 
-
     // ---- balcony railing, right edge ---------------------------------------
     p.slab(296, 122, 24, 4, C.silver, 1);
     for (let x = 300; x < p.width; x += 10) p.slab(x, 126, 3, 24, C.pewter, 1);
@@ -149,7 +147,11 @@ export const penthouseLounge: RoomDef = {
     'hot tub on it. There is somebody in the hot tub.',
 
   hotspots: [
-    { noun: 'glass', synonyms: ['windows', 'wall of glass', 'view'], look: 'Thirty storeys of nothing, and then Lost Wages, looking almost pretty from up here.' },
+    {
+      noun: 'glass',
+      synonyms: ['windows', 'wall of glass', 'view'],
+      look: 'Thirty storeys of nothing, and then Lost Wages, looking almost pretty from up here.',
+    },
     {
       noun: 'balcony',
       synonyms: ['railing', 'rail', 'terrace', 'ledge'],
@@ -159,9 +161,21 @@ export const penthouseLounge: RoomDef = {
           : 'A balcony with a steel railing. One level below and slightly out ' +
             'from the building is a lit terrace with a hot tub on it.',
     },
-    { noun: 'tub', synonyms: ['hot tub', 'jacuzzi'], look: 'From up here you can see steam, water, and one person in it who is not thinking about you at all.' },
-    { noun: 'cart', synonyms: ['bar cart', 'drinks'], look: 'A drinks trolley with two bottles on it and nobody drinking from either.' },
-    { noun: 'bedroom door', synonyms: ['bedroom'], look: 'A door standing slightly open on a dark bedroom.' },
+    {
+      noun: 'tub',
+      synonyms: ['hot tub', 'jacuzzi'],
+      look: 'From up here you can see steam, water, and one person in it who is not thinking about you at all.',
+    },
+    {
+      noun: 'cart',
+      synonyms: ['bar cart', 'drinks'],
+      look: 'A drinks trolley with two bottles on it and nobody drinking from either.',
+    },
+    {
+      noun: 'bedroom door',
+      synonyms: ['bedroom'],
+      look: 'A door standing slightly open on a dark bedroom.',
+    },
   ],
 
   exits: exitsOf(DOORS),

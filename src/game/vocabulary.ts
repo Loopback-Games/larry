@@ -111,16 +111,47 @@ export function buildVocabulary(): Vocabulary {
 
   // ---- filler ------------------------------------------------------------
   v.ignore(
-    'a', 'an', 'the', 'my', 'your', 'his', 'her', 'its', 'their',
-    'this', 'that', 'these', 'those', 'some', 'any', 'all',
-    'please', 'now', 'then', 'just', 'really', 'very',
+    'a',
+    'an',
+    'the',
+    'my',
+    'your',
+    'his',
+    'her',
+    'its',
+    'their',
+    'this',
+    'that',
+    'these',
+    'those',
+    'some',
+    'any',
+    'all',
+    'please',
+    'now',
+    'then',
+    'just',
+    'really',
+    'very',
     // 'go' is filler: the movement verbs are registered as "go north" phrases,
     // which are matched before the bare word is discarded.
     'go',
-    'and', 'of', 'is', 'are', 'was', 'be', 'do', 'does', 'did',
+    'and',
+    'of',
+    'is',
+    'are',
+    'was',
+    'be',
+    'do',
+    'does',
+    'did',
     // 'i' is deliberately not ignored: as a lone word it is the
     // inventory shorthand, which players use far more than the pronoun.
-    'me', 'you', 'it', 'him', 'them',
+    'me',
+    'you',
+    'it',
+    'him',
+    'them',
   );
 
   // ---- items -------------------------------------------------------------

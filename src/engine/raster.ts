@@ -113,14 +113,7 @@ export function polyline(s: Surface, pen: Pen, points: readonly number[], close 
     line(s, pen, points[i], points[i + 1], points[i + 2], points[i + 3]);
   }
   if (close) {
-    line(
-      s,
-      pen,
-      points[points.length - 2],
-      points[points.length - 1],
-      points[0],
-      points[1],
-    );
+    line(s, pen, points[points.length - 2], points[points.length - 1], points[0], points[1]);
   }
 }
 
@@ -167,14 +160,7 @@ export function fillPolygon(s: Surface, pen: Pen, points: readonly number[]): vo
 }
 
 /** Axis-aligned filled rectangle. */
-export function rect(
-  s: Surface,
-  pen: Pen,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-): void {
+export function rect(s: Surface, pen: Pen, x: number, y: number, w: number, h: number): void {
   const x0 = Math.max(0, Math.round(x));
   const y0 = Math.max(0, Math.round(y));
   const x1 = Math.min(s.width, Math.round(x + w));
@@ -185,14 +171,7 @@ export function rect(
 }
 
 /** Rectangle outline. */
-export function frame(
-  s: Surface,
-  pen: Pen,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-): void {
+export function frame(s: Surface, pen: Pen, x: number, y: number, w: number, h: number): void {
   line(s, pen, x, y, x + w - 1, y);
   line(s, pen, x + w - 1, y, x + w - 1, y + h - 1);
   line(s, pen, x + w - 1, y + h - 1, x, y + h - 1);

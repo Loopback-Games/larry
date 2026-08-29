@@ -12,7 +12,11 @@ export const FLOORS: readonly {
   room: string;
   gate?: (g: Game) => true | string;
 }[] = [
-  { label: '1 — Casino', words: ['1', 'one', 'casino', 'lobby', 'ground'], room: RoomId.ElevatorLobby },
+  {
+    label: '1 — Casino',
+    words: ['1', 'one', 'casino', 'lobby', 'ground'],
+    room: RoomId.ElevatorLobby,
+  },
   {
     label: '8 — Offices',
     words: ['8', 'eight', 'office', 'offices', 'reception'],
@@ -97,7 +101,11 @@ export const elevator: RoomDef = {
     'care for any of them.',
 
   hotspots: [
-    { noun: 'panel', synonyms: ['buttons', 'button'], look: () => `The panel reads:  ${FLOORS.map((f) => f.label).join('   ')}` },
+    {
+      noun: 'panel',
+      synonyms: ['buttons', 'button'],
+      look: () => `The panel reads:  ${FLOORS.map((f) => f.label).join('   ')}`,
+    },
     { noun: 'mirror', synonyms: ['mirrors'], look: 'Three of you, all making the same face.' },
     { noun: 'handrail', synonyms: ['rail'], look: 'A brass rail, for people who need one.' },
   ],
@@ -115,10 +123,17 @@ export const elevator: RoomDef = {
   onCommand(g, cmd) {
     if (cmd.verb === 'look' && cmd.object === 'panel') return false;
 
-    const words = cmd.raw.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+    const words = cmd.raw
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter(Boolean);
     for (const floor of FLOORS) {
       if (!floor.words.some((w) => words.includes(w))) continue;
-      if (floor.room === g.previousRoom && floor.room === RoomId.ElevatorLobby && !g.flag('married')) {
+      if (
+        floor.room === g.previousRoom &&
+        floor.room === RoomId.ElevatorLobby &&
+        !g.flag('married')
+      ) {
         // Going back where you came from is always allowed.
       }
       const gate = floor.gate?.(g);

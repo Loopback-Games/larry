@@ -59,7 +59,13 @@ export const elevatorLobbyScene = () =>
     // A potted plant that has outlived the decor.
     p.ink(C.brown).solid([246, 100, 274, 100, 270, 124, 250, 124]);
     p.ink(C.green);
-    for (const [dx, dy] of [[-14, -18], [-6, -26], [4, -28], [14, -20], [0, -14]] as const) {
+    for (const [dx, dy] of [
+      [-14, -18],
+      [-6, -26],
+      [4, -28],
+      [14, -20],
+      [0, -14],
+    ] as const) {
       p.solid([260, 100, 260 + dx, 100 + dy, 260 + dx + 6, 100 + dy + 6]);
     }
 
@@ -95,16 +101,36 @@ export const elevatorLobby: RoomDef = {
     'building opened.',
 
   hotspots: [
-    { noun: 'lift', synonyms: ['elevator', 'doors', 'lift doors'], look: 'Brass doors with a row of floor lights above them. The lights are not moving.' },
-    { noun: 'button', synonyms: ['call button'], look: 'A single round button, worn to a shine.' },
-    { noun: 'plant', synonyms: ['pot plant', 'potted plant'], look: 'It has survived thirty years of cigarette ends and is thriving out of spite.' },
-    { noun: 'ashtray', synonyms: ['stand'], look: 'A chrome ashtray on a stand, full to the brim.' },
+    {
+      noun: 'lift',
+      synonyms: ['elevator', 'doors', 'lift doors'],
+      look: 'Brass doors with a row of floor lights above them. The lights are not moving.',
+    },
+    {
+      noun: 'button',
+      synonyms: ['call button'],
+      look: 'A single round button, worn to a shine.',
+    },
+    {
+      noun: 'plant',
+      synonyms: ['pot plant', 'potted plant'],
+      look: 'It has survived thirty years of cigarette ends and is thriving out of spite.',
+    },
+    {
+      noun: 'ashtray',
+      synonyms: ['stand'],
+      look: 'A chrome ashtray on a stand, full to the brim.',
+    },
   ],
 
   exits: exitsOf(DOORS),
 
   onCommand(g, cmd) {
-    if (cmd.isAny('push', 'button') || cmd.isAny('use', 'button') || cmd.isAny('open', 'lift')) {
+    if (
+      cmd.isAny('push', 'button') ||
+      cmd.isAny('use', 'button') ||
+      cmd.isAny('open', 'lift')
+    ) {
       g.cue('door');
       g.say('You press the button. Somewhere above you, machinery agrees to help.');
       return true;

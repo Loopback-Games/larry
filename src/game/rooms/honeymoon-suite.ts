@@ -42,7 +42,9 @@ export const honeymoonSuiteScene = () =>
 
     // The bed, heart-shaped headboard, red cover.
     p.ink(C.maroon).solid([104, 76, 216, 76, 216, 96, 104, 96]);
-    p.ink(C.red).solid([160, 76, 118, 76, 124, 58, 148, 58, 160, 70, 172, 58, 196, 58, 202, 76]);
+    p.ink(C.red).solid([
+      160, 76, 118, 76, 124, 58, 148, 58, 160, 70, 172, 58, 196, 58, 202, 76,
+    ]);
     p.ink(C.pink).path([124, 60, 146, 60]).path([174, 60, 196, 60]);
     // Mattress top at about a third of standing height, not chest level.
     p.ink(C.red).solid([84, 110, 236, 110, 248, 136, 72, 136]);
@@ -113,8 +115,7 @@ export const honeymoonSuite: RoomDef = {
       g.setCounter('money', 0);
       g.cue('door');
       g.say(
-        'The suite is enormous and pink and has a heart-shaped bed in the ' +
-          'middle of it.',
+        'The suite is enormous and pink and has a heart-shaped bed in the ' + 'middle of it.',
         '"Lie down," says Fawn, "and close your eyes."',
         'You do both, because you have waited thirty-eight years for somebody ' +
           'to say that to you.',
@@ -127,7 +128,11 @@ export const honeymoonSuite: RoomDef = {
   },
 
   hotspots: [
-    { noun: 'bed', synonyms: ['heart bed', 'headboard', 'bedpost', 'bedposts'], look: 'A heart-shaped bed. Somebody built this on purpose.' },
+    {
+      noun: 'bed',
+      synonyms: ['heart bed', 'headboard', 'bedpost', 'bedposts'],
+      look: 'A heart-shaped bed. Somebody built this on purpose.',
+    },
     {
       noun: 'radio',
       synonyms: ['clock radio', 'clock', 'alarm'],
@@ -147,14 +152,26 @@ export const honeymoonSuite: RoomDef = {
           : 'Nylon rope, tied to the bedposts with knots that were not learned ' +
             'this evening.',
     },
-    { noun: 'champagne', synonyms: ['bucket', 'bottle', 'ice bucket'], look: 'A bottle in a bucket of water that used to be ice.' },
-    { noun: 'mirror', synonyms: ['mirrors', 'mirrored wall'], look: 'You can watch yourself being tied to a bed, which is a service nobody asked for.' },
+    {
+      noun: 'champagne',
+      synonyms: ['bucket', 'bottle', 'ice bucket'],
+      look: 'A bottle in a bucket of water that used to be ice.',
+    },
+    {
+      noun: 'mirror',
+      synonyms: ['mirrors', 'mirrored wall'],
+      look: 'You can watch yourself being tied to a bed, which is a service nobody asked for.',
+    },
   ],
 
   exits: exitsOf(DOORS),
 
   onCommand(g, cmd) {
-    if (cmd.isAny('turn on', 'radio') || cmd.isAny('use', 'radio') || cmd.isAny('listen', 'radio')) {
+    if (
+      cmd.isAny('turn on', 'radio') ||
+      cmd.isAny('use', 'radio') ||
+      cmd.isAny('listen', 'radio')
+    ) {
       if (g.award(1, 'turned-on-radio')) {
         g.set('radioOn');
         g.cue('score');
@@ -229,7 +246,10 @@ export const honeymoonSuite: RoomDef = {
       return false;
     }
 
-    if (!g.flag('untied') && ['north', 'south', 'east', 'west', 'exit', 'stand'].includes(cmd.verb ?? '')) {
+    if (
+      !g.flag('untied') &&
+      ['north', 'south', 'east', 'west', 'exit', 'stand'].includes(cmd.verb ?? '')
+    ) {
       g.say('You are tied to a bed. Movement is not currently among your options.');
       return true;
     }

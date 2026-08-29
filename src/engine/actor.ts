@@ -76,7 +76,7 @@ export class Actor {
     this.style = options.style;
     this.render = options.render;
     this.depthOverride = options.depth;
-    this.height = options.height ?? (options.style?.height ?? FIGURE_H);
+    this.height = options.height ?? options.style?.height ?? FIGURE_H;
     this.width = options.width ?? FIGURE_W;
     this.footHalfWidth = options.footHalfWidth ?? 5;
     this.footHeight = options.footHeight ?? 3;

@@ -71,7 +71,24 @@ export const barHallwayScene = () =>
     p.ink(C.woodDim).path([p.width - 1, 0, 202, 22, 202, FLOOR]);
 
     // Wainscoting, following the same perspective as the walls.
-    p.ink(C.maroonDeep).solid([0, 96, 118, 78, 202, 78, p.width, 96, p.width, 108, 202, 92, 118, 92, 0, 108]);
+    p.ink(C.maroonDeep).solid([
+      0,
+      96,
+      118,
+      78,
+      202,
+      78,
+      p.width,
+      96,
+      p.width,
+      108,
+      202,
+      92,
+      118,
+      92,
+      0,
+      108,
+    ]);
     p.ink(C.maroon).path([0, 96, 118, 78, 202, 78, p.width - 1, 96]);
 
     // Wallpaper stripes on the far wall only; on the side walls they would
@@ -165,7 +182,11 @@ export const barHallway: RoomDef = {
       look: 'A plain door at the end of the corridor. It is not locked.',
     },
     { noun: 'bucket', look: 'A mop bucket. The water in it has developed opinions.' },
-    { noun: 'bulb', synonyms: ['light', 'lamp'], look: 'One bare bulb doing the work of four.' },
+    {
+      noun: 'bulb',
+      synonyms: ['light', 'lamp'],
+      look: 'One bare bulb doing the work of four.',
+    },
   ],
 
   exits: exitsOf(DOORS),

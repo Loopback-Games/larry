@@ -182,7 +182,13 @@ export class Painter {
 
   /** Draw text centred on `cx`. */
   textCentred(value: string, cx: number, y: number, scale = 1, spacing = 0): this {
-    return this.text(value, Math.round(cx - this.textWidth(value, scale, spacing) / 2), y, scale, spacing);
+    return this.text(
+      value,
+      Math.round(cx - this.textWidth(value, scale, spacing) / 2),
+      y,
+      scale,
+      spacing,
+    );
   }
 
   // ---- composite scenery -------------------------------------------------
@@ -372,7 +378,9 @@ export class Painter {
       p.box(x, y, w, 1).box(x, y, 1, h);
       p.ink(shade(colour, -bevel));
       p.box(x, y + h - 1, w, 1).box(x + w - 1, y, 1, h);
-      p.ink(shade(colour, -bevel * 2)).dot(x + w - 1, y).dot(x, y + h - 1);
+      p.ink(shade(colour, -bevel * 2))
+        .dot(x + w - 1, y)
+        .dot(x, y + h - 1);
     });
   }
 
@@ -400,7 +408,12 @@ export class Painter {
     // radial falloff draws a visible oval across a flat wall, which is worse
     // than the flatness it was meant to relieve.
     const at = (x: number, y: number) => {
-      const edge = Math.min(x / this.width, y / this.height, 1 - x / this.width, 1 - y / this.height);
+      const edge = Math.min(
+        x / this.width,
+        y / this.height,
+        1 - x / this.width,
+        1 - y / this.height,
+      );
       return edge > 0.18 ? 0 : steps * (1 - edge / 0.18);
     };
     for (let y = 0; y < this.height; y++) {

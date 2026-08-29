@@ -68,11 +68,15 @@ describe('raster primitives', () => {
 
 describe('scene painter', () => {
   it('restores the pen after a saved block', () => {
-    const s = paint((p) => {
-      p.ink(5);
-      p.saved((q) => q.ink(9).box(0, 0, 2, 2));
-      p.box(4, 0, 2, 2);
-    }, 8, 8);
+    const s = paint(
+      (p) => {
+        p.ink(5);
+        p.saved((q) => q.ink(9).box(0, 0, 2, 2));
+        p.box(4, 0, 2, 2);
+      },
+      8,
+      8,
+    );
     expect(s.colourAt(0, 0)).toBe(9);
     expect(s.colourAt(4, 0)).toBe(5);
   });
@@ -94,10 +98,14 @@ describe('scene painter', () => {
   });
 
   it('marks blocked rectangles without painting them', () => {
-    const s = paint((p) => {
-      p.ink(6).box(0, 0, 16, 16);
-      p.blockRect(2, 2, 4, 4);
-    }, 16, 16);
+    const s = paint(
+      (p) => {
+        p.ink(6).box(0, 0, 16, 16);
+        p.blockRect(2, 2, 4, 4);
+      },
+      16,
+      16,
+    );
     expect(s.walkAt(3, 3)).toBe(WALK_BLOCKED);
     expect(s.colourAt(3, 3)).toBe(6);
   });
@@ -121,7 +129,9 @@ describe('polygon fill', () => {
   it('clips a polygon that extends past the surface', async () => {
     const { fillPolygon } = await import('../src/engine/raster.js');
     const s = new Surface(10, 10);
-    expect(() => fillPolygon(s, { colour: 4 }, [-50, -50, 60, -50, 60, 60, -50, 60])).not.toThrow();
+    expect(() =>
+      fillPolygon(s, { colour: 4 }, [-50, -50, 60, -50, 60, 60, -50, 60]),
+    ).not.toThrow();
     expect(s.colourAt(5, 5)).toBe(4);
   });
 });

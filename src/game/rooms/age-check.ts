@@ -19,16 +19,43 @@ interface Question {
 }
 
 export const QUESTIONS: readonly Question[] = [
-  { ask: 'A rotary telephone has a dial. What do you do to it?', answers: ['turn', 'spin', 'rotate', 'dial', 'wind'] },
-  { ask: 'Before a compact disc, music at home came on a black disc called what?', answers: ['record', 'vinyl', 'lp', 'album', 'a record'] },
-  { ask: 'What did you have to do to a cassette tape that had unspooled?', answers: ['rewind', 'wind it', 'wind', 'pencil', 'use a pencil'] },
-  { ask: 'A television with no remote control required you to do what to change channel?', answers: ['get up', 'stand up', 'walk', 'turn the dial', 'turn dial', 'get off the couch'] },
-  { ask: 'What colour is the middle light of a traffic signal?', answers: ['amber', 'yellow', 'orange'] },
+  {
+    ask: 'A rotary telephone has a dial. What do you do to it?',
+    answers: ['turn', 'spin', 'rotate', 'dial', 'wind'],
+  },
+  {
+    ask: 'Before a compact disc, music at home came on a black disc called what?',
+    answers: ['record', 'vinyl', 'lp', 'album', 'a record'],
+  },
+  {
+    ask: 'What did you have to do to a cassette tape that had unspooled?',
+    answers: ['rewind', 'wind it', 'wind', 'pencil', 'use a pencil'],
+  },
+  {
+    ask: 'A television with no remote control required you to do what to change channel?',
+    answers: ['get up', 'stand up', 'walk', 'turn the dial', 'turn dial', 'get off the couch'],
+  },
+  {
+    ask: 'What colour is the middle light of a traffic signal?',
+    answers: ['amber', 'yellow', 'orange'],
+  },
   { ask: 'A telephone number written 555-0100 has how many digits?', answers: ['7', 'seven'] },
-  { ask: 'What do you call the small change left for a waiter?', answers: ['tip', 'a tip', 'gratuity'] },
-  { ask: 'In a deck of cards, which suit is the same colour as hearts?', answers: ['diamonds', 'diamond', 'the diamonds'] },
-  { ask: 'What do you put in a car to make it go?', answers: ['petrol', 'gas', 'gasoline', 'fuel', 'diesel'] },
-  { ask: 'Twenty-one is the winning total in which card game?', answers: ['blackjack', 'pontoon', 'twenty one', '21', 'twenty-one'] },
+  {
+    ask: 'What do you call the small change left for a waiter?',
+    answers: ['tip', 'a tip', 'gratuity'],
+  },
+  {
+    ask: 'In a deck of cards, which suit is the same colour as hearts?',
+    answers: ['diamonds', 'diamond', 'the diamonds'],
+  },
+  {
+    ask: 'What do you put in a car to make it go?',
+    answers: ['petrol', 'gas', 'gasoline', 'fuel', 'diesel'],
+  },
+  {
+    ask: 'Twenty-one is the winning total in which card game?',
+    answers: ['blackjack', 'pontoon', 'twenty one', '21', 'twenty-one'],
+  },
 ];
 
 const NEEDED = 2;
@@ -69,7 +96,11 @@ function currentQuestion(g: Game): Question {
 }
 
 function normalise(text: string): string {
-  return text.toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim();
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 export const ageCheck: RoomDef = {
@@ -83,7 +114,11 @@ export const ageCheck: RoomDef = {
   describe: 'A locked door with a card taped to it reading OVER 18s ONLY.',
 
   hotspots: [
-    { noun: 'door', synonyms: ['card', 'sign', 'notice'], look: 'OVER 18s ONLY. Underneath, in biro: "prove it".' },
+    {
+      noun: 'door',
+      synonyms: ['card', 'sign', 'notice'],
+      look: 'OVER 18s ONLY. Underneath, in biro: "prove it".',
+    },
   ],
 
   onEnter(g) {
@@ -133,10 +168,7 @@ export const ageCheck: RoomDef = {
       return true;
     }
 
-    g.say(
-      `${right} out of ${ROUND}. The door stays shut.`,
-      'Three more, then.',
-    );
+    g.say(`${right} out of ${ROUND}. The door stays shut.`, 'Three more, then.');
     g.setCounter('quizIndex', 0);
     g.setCounter('quizRight', 0);
     g.setCounter('quizSeed', g.roll(0, QUESTIONS.length - 1));

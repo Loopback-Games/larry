@@ -44,7 +44,13 @@ export const penthouseHotTubScene = () =>
     for (const px of [26, 296]) {
       p.ink(C.brown).solid([px - 10, 90, px + 10, 90, px + 7, 112, px - 7, 112]);
       p.ink(C.green);
-      for (const [dx, dy] of [[-18, -16], [-8, -24], [4, -26], [16, -18], [0, -12]] as const) {
+      for (const [dx, dy] of [
+        [-18, -16],
+        [-8, -24],
+        [4, -26],
+        [16, -18],
+        [0, -12],
+      ] as const) {
         p.path([px, 90, px + dx, 90 + dy]);
         p.path([px + dx, 90 + dy, px + dx + (dx > 0 ? -6 : 6), 90 + dy + 6]);
       }
@@ -127,10 +133,26 @@ export const penthouseHotTub: RoomDef = {
             'watching the sky. She has not looked at you once, and it is not ' +
             'rudeness. It is that you have not yet been interesting.',
     },
-    { noun: 'tub', synonyms: ['hot tub', 'jacuzzi', 'water'], look: 'Hot, lit from underneath, and steaming in the cold.' },
-    { noun: 'parapet', synonyms: ['wall', 'edge', 'city'], look: 'Beyond it, the whole of Lost Wages, going quiet at last.' },
-    { noun: 'sky', synonyms: ['sunrise', 'dawn'], look: 'There is a line of colour along the bottom of it. Not long now.' },
-    { noun: 'palms', synonyms: ['palm', 'plants', 'pots'], look: 'Two palms in pots, doing well for this altitude.' },
+    {
+      noun: 'tub',
+      synonyms: ['hot tub', 'jacuzzi', 'water'],
+      look: 'Hot, lit from underneath, and steaming in the cold.',
+    },
+    {
+      noun: 'parapet',
+      synonyms: ['wall', 'edge', 'city'],
+      look: 'Beyond it, the whole of Lost Wages, going quiet at last.',
+    },
+    {
+      noun: 'sky',
+      synonyms: ['sunrise', 'dawn'],
+      look: 'There is a line of colour along the bottom of it. Not long now.',
+    },
+    {
+      noun: 'palms',
+      synonyms: ['palm', 'plants', 'pots'],
+      look: 'Two palms in pots, doing well for this altitude.',
+    },
   ],
 
   exits: exitsOf(DOORS),
@@ -183,8 +205,7 @@ export const penthouseHotTub: RoomDef = {
         'And you put the doll in the hot tub.',
         'There is a pause. Then Eve laughs — a proper, undignified, ' +
           'thirty-storeys-up laugh — and does not stop for some time.',
-        '"Sit down," she says, when she can. "Sit down, before you do anything ' +
-          'else."',
+        '"Sit down," she says, when she can. "Sit down, before you do anything ' + 'else."',
       );
       return true;
     }
@@ -235,8 +256,7 @@ export const penthouseHotTub: RoomDef = {
       g.say(
         g.hasAwarded('used-doll')
           ? '"Go on then," she says. "What else have you got?"'
-          : 'You say something. It is not good. She lets it go past her like ' +
-            'weather.',
+          : 'You say something. It is not good. She lets it go past her like ' + 'weather.',
       );
       return true;
     }
@@ -246,7 +266,9 @@ export const penthouseHotTub: RoomDef = {
         g.say('"No," she says, without heat, and without looking round.');
         return true;
       }
-      g.say('You get in, fully dressed, because taking the suit off now would break the spell.');
+      g.say(
+        'You get in, fully dressed, because taking the suit off now would break the spell.',
+      );
       return true;
     }
 

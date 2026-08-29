@@ -81,9 +81,21 @@ export const insideBarScene = () =>
     // Bottles: warm spirits on top, green and clear below, all glinting on the
     // same side because the light is over the counter.
     const bottles = [
-      [78, C.gold], [88, C.tan], [98, C.brownLit], [110, C.crimson], [120, C.bone],
-      [132, C.greenDim], [142, C.gold], [154, C.tealLit], [166, C.crimson], [176, C.bone],
-      [188, C.greenDim], [198, C.goldLit], [210, C.teal], [222, C.maroon], [234, C.ivory],
+      [78, C.gold],
+      [88, C.tan],
+      [98, C.brownLit],
+      [110, C.crimson],
+      [120, C.bone],
+      [132, C.greenDim],
+      [142, C.gold],
+      [154, C.tealLit],
+      [166, C.crimson],
+      [176, C.bone],
+      [188, C.greenDim],
+      [198, C.goldLit],
+      [210, C.teal],
+      [222, C.maroon],
+      [234, C.ivory],
     ] as const;
     for (const [bx, colour] of bottles) {
       for (const by of [44, 59]) {
@@ -120,10 +132,14 @@ export const insideBarScene = () =>
     for (const tx of [120, 128, 136]) p.slab(tx, COUNTER_TOP - 9, 4, 9, C.pewter, 1);
     p.slab(115, COUNTER_TOP - 12, 28, 4, C.silver, 1);
     p.ink(C.ivory).solid([
-      196, COUNTER_TOP,
-      214, COUNTER_TOP,
-      211, COUNTER_TOP - 6,
-      199, COUNTER_TOP - 6,
+      196,
+      COUNTER_TOP,
+      214,
+      COUNTER_TOP,
+      211,
+      COUNTER_TOP - 6,
+      199,
+      COUNTER_TOP - 6,
     ]);
     p.ink(C.khaki).line(199, COUNTER_TOP - 5, 210, COUNTER_TOP - 5);
 
@@ -136,10 +152,14 @@ export const insideBarScene = () =>
     const cushion = Math.max(2, Math.round(STOOL_H * 0.3));
     for (const sx of [58, 100, 142, 184, 226, 266]) {
       p.ink(C.crimson).solid([
-        sx - 10, seatTop,
-        sx + 10, seatTop,
-        sx + 8, seatTop + cushion,
-        sx - 8, seatTop + cushion,
+        sx - 10,
+        seatTop,
+        sx + 10,
+        seatTop,
+        sx + 8,
+        seatTop + cushion,
+        sx - 8,
+        seatTop + cushion,
       ]);
       p.ink(C.redLit).line(sx - 10, seatTop, sx + 9, seatTop);
       p.ink(C.maroonDeep).line(sx - 8, seatTop + cushion, sx + 7, seatTop + cushion);
@@ -194,7 +214,7 @@ export const insideBar: RoomDef = {
   },
 
   describe:
-    'Lefty\'s. Red walls, red light, and a smell of spilt beer that has soaked ' +
+    "Lefty's. Red walls, red light, and a smell of spilt beer that has soaked " +
     'into the fabric of the building. A bartender polishes a glass with a cloth ' +
     'that is making it dirtier. Nobody else is here.',
 

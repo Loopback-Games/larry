@@ -5,7 +5,6 @@ import { Actor } from '../../engine/actor.js';
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
 
-
 /** Where the floor meets the back of the room. */
 const FLOOR = 126;
 
@@ -18,9 +17,7 @@ const DOORS: readonly Doorway[] = [
     y: 146,
     w: 32,
     when: (g) =>
-      g.hasAwarded('went-to-bed')
-        ? true
-        : 'You have not finished what you came up here for.',
+      g.hasAwarded('went-to-bed') ? true : 'You have not finished what you came up here for.',
   },
 ];
 
@@ -37,7 +34,10 @@ export const hookerRoomScene = () =>
     p.ink(C.red);
     for (let y = 16; y < 120; y += 18)
       for (let x = 10; x < p.width; x += 24) {
-        p.dot(x, y).dot(x + 1, y).dot(x, y + 1).dot(x + 1, y + 1);
+        p.dot(x, y)
+          .dot(x + 1, y)
+          .dot(x, y + 1)
+          .dot(x + 1, y + 1);
         p.dot(x + 12, y + 9).dot(x + 13, y + 9);
       }
 
@@ -150,7 +150,10 @@ export const hookerRoom: RoomDef = {
       synonyms: ['sash', 'curtain'],
       look: 'The sash is up. Below it is the alley, two storeys down but reachable.',
     },
-    { noun: 'lamp', look: 'A lamp with a pink scarf over the shade. Romantic, and a fire risk.' },
+    {
+      noun: 'lamp',
+      look: 'A lamp with a pink scarf over the shade. Romantic, and a fire risk.',
+    },
   ],
 
   exits: exitsOf(DOORS),
@@ -195,7 +198,9 @@ export const hookerRoom: RoomDef = {
         return true;
       }
       if (g.hasAwarded('went-to-bed')) {
-        g.say('She points at the window. Your welcome has a shape, and this is the edge of it.');
+        g.say(
+          'She points at the window. Your welcome has a shape, and this is the edge of it.',
+        );
         return true;
       }
       g.award(11, 'went-to-bed');
@@ -238,7 +243,9 @@ export const hookerRoom: RoomDef = {
         return true;
       }
       if (!g.hasAwarded('went-to-bed')) {
-        g.say('Helping yourself to her chocolates before you have even said hello is a bit much.');
+        g.say(
+          'Helping yourself to her chocolates before you have even said hello is a bit much.',
+        );
         return true;
       }
       g.give(ItemId.Candy);

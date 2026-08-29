@@ -24,8 +24,14 @@ export function reachable(g: Game, from: Point = g.ego): Set<number> {
   while (queue.length) {
     const p = queue.pop()!;
     for (const [dx, dy] of [
-      [1, 0], [-1, 0], [0, 1], [0, -1],
-      [1, 1], [1, -1], [-1, 1], [-1, -1],
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+      [1, 1],
+      [1, -1],
+      [-1, 1],
+      [-1, -1],
     ] as const) {
       const nx = p.x + dx;
       const ny = p.y + dy;
@@ -65,7 +71,12 @@ export function pathTo(g: Game, target: Point): Point[] | null {
       }
       return path.reverse();
     }
-    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+    for (const [dx, dy] of [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+    ] as const) {
       const nx = p.x + dx;
       const ny = p.y + dy;
       if (nx < 0 || nx >= CANVAS_W || ny < 0 || ny >= CANVAS_H) continue;

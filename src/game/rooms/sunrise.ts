@@ -41,7 +41,13 @@ export const sunrise: RoomDef = {
 
   describe: 'The sun comes up over Lost Wages, and it is not on your side.',
 
-  hotspots: [{ noun: 'sun', synonyms: ['sunrise', 'dawn', 'sky'], look: 'It is coming up whether you are ready or not.' }],
+  hotspots: [
+    {
+      noun: 'sun',
+      synonyms: ['sunrise', 'dawn', 'sky'],
+      look: 'It is coming up whether you are ready or not.',
+    },
+  ],
 
   onEnter(g) {
     g.die(

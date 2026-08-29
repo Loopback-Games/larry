@@ -20,7 +20,10 @@ describe('bitmap font', () => {
       const rows = glyph(c);
       expect(rows.length).toBe(GLYPH_H);
       // Every printable non-space character must draw something.
-      expect(rows.some((r) => r !== 0), String.fromCharCode(c)).toBe(true);
+      expect(
+        rows.some((r) => r !== 0),
+        String.fromCharCode(c),
+      ).toBe(true);
     }
   });
 

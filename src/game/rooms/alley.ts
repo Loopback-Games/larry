@@ -4,7 +4,6 @@ import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js'
 import { RoomId, ItemId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
 
-
 /** Where the floor meets the back of the room. */
 const FLOOR = 130;
 
@@ -217,7 +216,9 @@ export const alley: RoomDef = {
     }
 
     if (cmd.isAny('climb', 'fire escape', 'ladder')) {
-      g.say('The bottom section is well above your reach, and you are not the athlete you were.');
+      g.say(
+        'The bottom section is well above your reach, and you are not the athlete you were.',
+      );
       return true;
     }
 

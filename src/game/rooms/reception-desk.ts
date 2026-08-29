@@ -136,9 +136,21 @@ export const receptionDesk: RoomDef = {
       synonyms: ['button', 'switch'],
       look: 'A red button under a small hinged cover, labelled PH RELEASE.',
     },
-    { noun: 'desk', synonyms: ['counter', 'paperwork', 'papers'], look: 'A wide desk covered in paper, a telephone, a card machine and a glass of water.' },
-    { noun: 'mural', synonyms: ['painting', 'picture'], look: 'A mountain, painted by somebody who had heard about mountains.' },
-    { noun: 'water', synonyms: ['glass', 'glass of water'], look: 'A glass of water beside her, mostly full.' },
+    {
+      noun: 'desk',
+      synonyms: ['counter', 'paperwork', 'papers'],
+      look: 'A wide desk covered in paper, a telephone, a card machine and a glass of water.',
+    },
+    {
+      noun: 'mural',
+      synonyms: ['painting', 'picture'],
+      look: 'A mountain, painted by somebody who had heard about mountains.',
+    },
+    {
+      noun: 'water',
+      synonyms: ['glass', 'glass of water'],
+      look: 'A glass of water beside her, mostly full.',
+    },
   ],
 
   exits: exitsOf(DOORS),
@@ -201,7 +213,7 @@ export const receptionDesk: RoomDef = {
         g.flag('faithAsleep')
           ? 'She is not taking questions.'
           : '"Can I help you," she says, in a way that has no question in it ' +
-            'at all. "Sorry. Long night. Headache."',
+              'at all. "Sorry. Long night. Headache."',
       );
       return true;
     }
@@ -210,7 +222,7 @@ export const receptionDesk: RoomDef = {
       g.say(
         g.flag('faithAsleep')
           ? 'No. Absolutely not. You have some standards, and this is where ' +
-            'they turn out to be.'
+              'they turn out to be.'
           : 'She holds up one finger without looking at you, and you stop.',
       );
       return true;

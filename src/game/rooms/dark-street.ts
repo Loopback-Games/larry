@@ -4,7 +4,6 @@ import { doorways, exitsOf, walls, type Doorway } from '../../engine/doorway.js'
 import { RoomId } from '../ids.js';
 import type { RoomDef } from '../../engine/room.js';
 
-
 /** Where the floor meets the back of the room. */
 const FLOOR = 130;
 

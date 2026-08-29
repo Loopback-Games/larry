@@ -14,7 +14,7 @@ This project is a **from-scratch reimplementation**. Every line of code, every
 pixel of artwork, every line of writing and every note of music here is
 original work produced for this repository.
 
-It follows the *structure* of a well-known 1987 adventure game — the shape of
+It follows the _structure_ of a well-known 1987 adventure game — the shape of
 the city, the chain of puzzles, the 222-point scoring — because that structure
 is what makes the genre work. Game mechanics and puzzle structure are not
 copyrightable; the expression of them is. So none of the expression is reused:
@@ -50,16 +50,35 @@ insert a word, nouns finish the sentence and send it.
 
 ## Running it
 
+One file pins every tool and one file holds every command.
+
 ```sh
-npm install
-npm run dev        # development server
-npm run build      # type-check and produce dist/
-npm run preview    # serve the production build
-npm test           # unit and integration tests
-npm run test:e2e   # browser tests, desktop and mobile
+mise install   # node, just and the linters, at the pinned versions
+just setup     # the above, plus the dependencies and the test browser
+just           # list the recipes
 ```
 
-Node 20 or newer.
+```sh
+just run       # development server
+just fmt       # format everything
+just lint      # typecheck, formatting, workflows
+just test      # unit, world, traversal and walkthrough tests
+just e2e       # browser tests, desktop and mobile
+just security  # advisories against the dependencies, secrets in the history
+just art       # render every room to a contact sheet
+just check     # every gate, against the environment you have
+just ci        # provision first, then check. What CI runs.
+```
+
+Tool versions live in `mise.toml` and nowhere else — not the workflow, not a
+`.nvmrc`, not the README. `.github/workflows/ci.yml` installs that same file
+with `jdx/mise-action` and then runs `just ci`, one step and no inline shell, so
+a workflow can never carry a command you cannot run yourself.
+
+There is a devcontainer for anyone who would rather not install any of that. It
+builds on the same Playwright image CI runs the suite in, so the browser and the
+libraries behind it are identical in both places. `just container` runs the
+whole gate inside it.
 
 ---
 
@@ -67,7 +86,7 @@ Node 20 or newer.
 
 Roughly 3,000 lines of TypeScript with no runtime dependencies. The built game
 is about 58 KB gzipped, all of it code — there are no asset downloads, because
-the artwork *is* code.
+the artwork _is_ code.
 
 ```
 src/
@@ -90,7 +109,7 @@ p.depthRamp(122, p.height, 5, 14);
 Every scene carries three planes: **colour** for the picture, **depth** for
 deciding whether a character walks in front of or behind the scenery, and
 **walk** for where a character may go at all. Keeping them separate means a
-waist-high counter can be solid *and* have someone stand behind it.
+waist-high counter can be solid _and_ have someone stand behind it.
 
 **Characters are parametric.** One humanoid rig is drawn from a style record,
 so the whole cast — Larry, the bartender, Fawn, the doorman, Eve — shares

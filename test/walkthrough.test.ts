@@ -68,14 +68,7 @@ function playToTheEnd(g: Game, checkpoint?: (g: Game, label: string) => void): v
   leg('washroom', RoomId.BarToilet, 'sit down', 'read the wall', 'open the cistern');
   leg('storeroom', RoomId.BarBackroom, 'use remote', 'use remote');
   leg('cab', RoomId.Taxi, 'store');
-  leg(
-    'store',
-    RoomId.InsideStore,
-    'buy magazine',
-    'read magazine',
-    'buy wine',
-    'buy condom',
-  );
+  leg('store', RoomId.InsideStore, 'buy magazine', 'read magazine', 'buy wine', 'buy condom');
   leg(
     'phone',
     RoomId.OutsideStore,
@@ -172,8 +165,14 @@ describe('walkthrough', () => {
     playToTheEnd(g);
     // Everything given away should be gone; the souvenirs remain.
     for (const gone of [
-      ItemId.Whiskey, ItemId.Wine, ItemId.Rose, ItemId.Candy,
-      ItemId.Ring, ItemId.Pills, ItemId.Doll, ItemId.Apple,
+      ItemId.Whiskey,
+      ItemId.Wine,
+      ItemId.Rose,
+      ItemId.Candy,
+      ItemId.Ring,
+      ItemId.Pills,
+      ItemId.Doll,
+      ItemId.Apple,
     ]) {
       expect(g.has(gone), `${gone} should have been given away`).toBe(false);
     }
